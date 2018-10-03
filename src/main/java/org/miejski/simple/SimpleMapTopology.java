@@ -6,14 +6,13 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.miejski.TopologyBuilder;
 
-class SimpleMapTopology {
-
-    Topology buildTopology() {
+class SimpleMapTopology implements TopologyBuilder {
+    public Topology buildTopology() {
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, Integer> stream = builder.stream("input-topic", Consumed.with(Serdes.String(), Serdes.Integer()));
         stream.map((key, value) -> KeyValue.pair(key, value * 2)).to("output-topic");
         return builder.build();
     }
-
 }

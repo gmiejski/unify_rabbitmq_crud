@@ -11,7 +11,7 @@ public class NumbersJoiner implements ValueJoiner<Integer, Integer, Integer> {
         if (state == null) {
             return newValue;
         }
-        if (DELETED_VALUE == state) {
+        if (DELETED_VALUE == newValue) {
             return DELETED_VALUE;
         }
         return state + newValue;

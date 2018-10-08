@@ -16,13 +16,13 @@ import static org.apache.kafka.streams.kstream.Consumed.with;
 
 public class SimpleUnifyTopology implements TopologyBuilder {
 
-    public static final String NEW_TOPIC = "new_topic";
-    public static final String UPDATE_TOPIC = "update_topic";
-    public static final String DELETE_TOPIC = "delete_topic";
-    public static final String UNIFIED_TOPIC = "unified_topic";
-    public static final int DELETED_VALUE = -1;
-    public static final String NUMBERS_TABLE_TOPIC = "something";
-    public static final String NUMBERS_STORE_NAME = "numbersFinal";
+    static final String NEW_TOPIC = "new_topic";
+    static final String UPDATE_TOPIC = "update_topic";
+    static final String DELETE_TOPIC = "delete_topic";
+    private static final String UNIFIED_TOPIC = "unified_topic";
+    static final int DELETED_VALUE = -1;
+    private static final String NUMBERS_TABLE_TOPIC = "something";
+    static final String NUMBERS_STORE_NAME = "numbersFinal";
 
 
 

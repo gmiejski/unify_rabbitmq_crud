@@ -57,4 +57,14 @@ class SimpleUnifyTopologyTest {
         testDriver.pipeInput(recordFactory.create(SimpleUnifyTopology.UPDATE_TOPIC, numberKey, 20));
         Assertions.assertEquals(30, store.get(numberKey).intValue());
     }
+
+    @Test
+    void shouldDeleteKey() {
+        testDriver.pipeInput(recordFactory.create(SimpleUnifyTopology.NEW_TOPIC, numberKey, 10));
+        Assertions.assertEquals(10, store.get(numberKey).intValue());
+
+        testDriver.pipeInput(recordFactory.create(SimpleUnifyTopology.DELETE_TOPIC, numberKey, -1));
+
+        Assertions.assertEquals(-1, store.get(numberKey).intValue());
+    }
 }

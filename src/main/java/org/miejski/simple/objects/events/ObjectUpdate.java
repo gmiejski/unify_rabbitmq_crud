@@ -15,9 +15,9 @@ public class ObjectUpdate implements ObjectModifier {
 
     @Override
     public ObjectState doSomething(ObjectState obj) {
-        if (obj == null) {
-            return new ObjectState(this.value);
+        if (obj == null || !obj.isInitialized()) {
+            return new ObjectState(this.value).initialize();
         }
-        return new ObjectState(value, false);
+        return new ObjectState(value).initialize();
     }
 }

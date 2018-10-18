@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO here - do generic SERDE and then aggregateByKey and reduce with this serializer?????
 public class GenericSerde {
 
     public static GenericField toGenericField(ObjectModifier objectModifier) throws JsonProcessingException {

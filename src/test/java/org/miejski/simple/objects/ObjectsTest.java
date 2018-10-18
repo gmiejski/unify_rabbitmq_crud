@@ -9,10 +9,12 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.simple.objects.events.ObjectCreation;
+import org.miejski.simple.objects.events.ObjectDelete;
 import org.miejski.simple.objects.events.ObjectUpdate;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericSerde;
@@ -41,6 +43,13 @@ public class ObjectsTest {
 
         testDriver = new TopologyTestDriver(topology, props);
         store = testDriver.getKeyValueStore(ObjectsTopology.OBJECTS_STORE_NAME);
+
+
+    }
+
+    @AfterEach
+    void tearDown() {
+        testDriver.close();
     }
 
     @Test
@@ -58,6 +67,11 @@ public class ObjectsTest {
 
         state = store.get(numberKey);
         Assertions.assertEquals(7, state.value);
+        Assertions.assertFalse(state.isDeleted);
 
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectDelete()));
+        testDriver.pipeInput(genericDelete);
+        state = store.get(numberKey);
+        Assertions.assertTrue(state.isDeleted);
     }
 }

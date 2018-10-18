@@ -30,4 +30,9 @@ public class ObjectState {
     public boolean isInitialized() {
         return isInitialized;
     }
+
+    public ObjectState initialize() {
+        isInitialized = true;
+        return this;
+    }
 }

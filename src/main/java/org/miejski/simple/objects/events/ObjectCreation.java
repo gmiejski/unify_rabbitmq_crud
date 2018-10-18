@@ -18,6 +18,6 @@ public class ObjectCreation implements ObjectModifier {
         if (obj != null && obj.isInitialized()) {
             return obj;
         }
-        return new ObjectState(value);
+        return new ObjectState(value).initialize();
     }
 }

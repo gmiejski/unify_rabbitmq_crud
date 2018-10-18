@@ -4,7 +4,6 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Produced;
 import org.miejski.TopologyBuilder;
 import org.miejski.questions.KStreamStateLeftJoin;
 
@@ -19,18 +18,15 @@ public class SimpleUnifyTopology implements TopologyBuilder {
     static final String NEW_TOPIC = "new_topic";
     static final String UPDATE_TOPIC = "update_topic";
     static final String DELETE_TOPIC = "delete_topic";
-    private static final String UNIFIED_TOPIC = "unified_topic";
     static final int DELETED_VALUE = -1;
     private static final String NUMBERS_TABLE_TOPIC = "something";
     static final String NUMBERS_STORE_NAME = "numbersFinal";
-
 
 
     @Override
     public Topology buildTopology() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
         KStream<String, Integer> inputStream = streamsBuilder.stream(asList(NEW_TOPIC, UPDATE_TOPIC, DELETE_TOPIC), with(String(), Integer()));
-        inputStream.to(UNIFIED_TOPIC, Produced.with(String(), Integer()));
 
         streamsBuilder
                 .table(NUMBERS_TABLE_TOPIC, with(String(), Integer()), Materialized.as(NUMBERS_STORE_NAME))

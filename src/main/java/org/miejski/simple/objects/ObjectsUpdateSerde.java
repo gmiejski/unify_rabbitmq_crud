@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class ObjectsUpdateSerde {
 
-    static Serde<ObjectUpdate> serde() {
+    public static Serde<ObjectUpdate> serde() {
         return Serdes.serdeFrom(new ObjectsUpdateSerde.ObjectsSer(), new ObjectsUpdateSerde.ObjectsDe());
     }
 

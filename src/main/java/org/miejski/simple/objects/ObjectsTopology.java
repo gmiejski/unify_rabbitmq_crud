@@ -16,19 +16,17 @@ import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericSerde;
 import org.miejski.simple.objects.serdes.JSONSerde;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class ObjectsTopology implements TopologyBuilder {
 
-    static final String NEW_TOPIC = "new_topic";
-    static final String UPDATE_TOPIC = "update_topic";
-    static final String DELETE_TOPIC = "delete_topic";
-    static final String FINAL_TOPIC = "final_topic";
-    static final String MODIFIERS_TOPIC = "modifiers_topic";
-
+    public static final String NEW_TOPIC = "new_topic";
+    public static final String UPDATE_TOPIC = "update_topic";
+    public static final String DELETE_TOPIC = "delete_topic";
+    public static final String FINAL_TOPIC = "final_topic";
+    public static final String MODIFIERS_TOPIC = "modifiers_topic";
     private static final String OBJECTS_TABLE_TOPIC = "something";
-    static final String OBJECTS_STORE_NAME = "objectsFinal";
+    public static final String OBJECTS_STORE_NAME = "objectsFinal";
 
 
     @Override

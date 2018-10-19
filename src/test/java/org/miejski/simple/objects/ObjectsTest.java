@@ -1,6 +1,5 @@
 package org.miejski.simple.objects;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -53,25 +52,25 @@ public class ObjectsTest {
     }
 
     @Test
-    void shouldProperlyUseGenericObjectsInOneTopic() throws JsonProcessingException {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectCreation(20)));
+    void shouldProperlyUseGenericObjectsInOneTopic() {
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectCreation(numberKey, 20)));
 
         testDriver.pipeInput(genericCreate);
 
         ObjectState state = store.get(numberKey);
-        Assertions.assertEquals(20, state.value);
+        Assertions.assertEquals(20, state.getValue());
 
 
-        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectUpdate(7)));
+        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectUpdate(numberKey, 7)));
         testDriver.pipeInput(genericUpdate);
 
         state = store.get(numberKey);
-        Assertions.assertEquals(7, state.value);
-        Assertions.assertFalse(state.isDeleted);
+        Assertions.assertEquals(7, state.getValue());
+        Assertions.assertFalse(state.isDeleted());
 
-        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectDelete()));
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectDelete(numberKey)));
         testDriver.pipeInput(genericDelete);
         state = store.get(numberKey);
-        Assertions.assertTrue(state.isDeleted);
+        Assertions.assertTrue(state.isDeleted());
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class ObjectsCreationSerde {
 
-    static Serde<ObjectCreation> serde() {
+    public static Serde<ObjectCreation> serde() {
         return Serdes.serdeFrom(new ObjectsCreationSerde.ObjectsSer(), new ObjectsCreationSerde.ObjectsDe());
     }
 

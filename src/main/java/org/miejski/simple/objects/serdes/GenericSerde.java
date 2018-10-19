@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class GenericSerde {
 
-    public static GenericField toGenericField(ObjectModifier objectModifier) throws JsonProcessingException {
+    public static GenericField toGenericField(ObjectModifier objectModifier)  {
         HashMap<String, Class> serializers = new HashMap<>();
         serializers.put(ObjectCreation.class.getSimpleName(), ObjectCreation.class);
         serializers.put(ObjectUpdate.class.getSimpleName(), ObjectUpdate.class);
@@ -27,7 +27,12 @@ public class GenericSerde {
         if (!serializers.containsKey(serializer)) {
             throw new RuntimeException("Unknown serializer: " + serializer);
         }
-        return new GenericField(serializer, QuestionObjectMapper.build().writeValueAsString(objectModifier));
+        try {
+            return new GenericField(serializer, QuestionObjectMapper.build().writeValueAsString(objectModifier));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error marshalling data!!!!!!");
+        }
     }
 
 

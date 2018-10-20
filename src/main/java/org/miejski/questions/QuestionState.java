@@ -1,5 +1,7 @@
 package org.miejski.questions;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 public class QuestionState {
@@ -7,9 +9,9 @@ public class QuestionState {
     private int questionID;
     private String market;
     private String content;
+    private ZonedDateTime lastModification = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
 
-
-    public QuestionState(int questionID, String market, String content) {
+    public QuestionState(String market, int questionID, String content) {
         this.questionID = questionID;
         this.market = market;
         this.content = content;
@@ -22,8 +24,10 @@ public class QuestionState {
         return QuestionID.from(this.market, this.questionID);
     }
 
-    public QuestionState withLastModification(ZonedDateTime createDate) {
-        return null;
+    public QuestionState withLastModification(ZonedDateTime lastModification) {
+        QuestionState questionState = new QuestionState(this.market, this.questionID, this.content);
+        questionState.lastModification = lastModification;
+        return questionState;
     }
 
     public int getQuestionID() {
@@ -36,5 +40,9 @@ public class QuestionState {
 
     public String getContent() {
         return content;
+    }
+
+    public ZonedDateTime getLastModification() {
+        return lastModification;
     }
 }

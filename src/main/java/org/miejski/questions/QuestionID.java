@@ -1,6 +1,7 @@
 package org.miejski.questions;
 
-import jdk.internal.joptsimple.internal.Strings;
+
+import com.google.common.base.Strings;
 
 public class QuestionID {
 

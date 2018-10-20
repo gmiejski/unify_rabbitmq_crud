@@ -19,6 +19,7 @@ import org.miejski.simple.objects.serdes.GenericSerde;
 import org.miejski.simple.objects.serdes.JSONSerde;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ObjectsTopology implements TopologyBuilder {
 
@@ -37,10 +38,11 @@ public class ObjectsTopology implements TopologyBuilder {
         serializers.put(ObjectCreation.class.getSimpleName(), ObjectCreation.class);
         serializers.put(ObjectUpdate.class.getSimpleName(), ObjectUpdate.class);
         serializers.put(ObjectDelete.class.getSimpleName(), ObjectDelete.class);
+        GenericSerde genericObjectSerde = new GenericSerde(serializers);
 
-        forwardToGenericTopic(streamsBuilder, CREATE_TOPIC, ObjectCreation.class);
-        forwardToGenericTopic(streamsBuilder, UPDATE_TOPIC, ObjectUpdate.class);
-        forwardToGenericTopic(streamsBuilder, DELETE_TOPIC, ObjectDelete.class);
+        forwardToGenericTopic(streamsBuilder, CREATE_TOPIC, ObjectCreation.class, genericObjectSerde);
+        forwardToGenericTopic(streamsBuilder, UPDATE_TOPIC, ObjectUpdate.class, genericObjectSerde);
+        forwardToGenericTopic(streamsBuilder, DELETE_TOPIC, ObjectDelete.class, genericObjectSerde); // TODO genericObjectSerde should not be needed over here at all
 
         KStream<String, GenericField> allGenerics = streamsBuilder.stream(FINAL_TOPIC, Consumed.with(Serdes.String(), GenericSerde.serde()));
 
@@ -52,8 +54,8 @@ public class ObjectsTopology implements TopologyBuilder {
         return streamsBuilder.build();
     }
 
-    private void forwardToGenericTopic(StreamsBuilder streamsBuilder, String inputTopic, Class<? extends ObjectModifier> inputTopicClass) {
+    private void forwardToGenericTopic(StreamsBuilder streamsBuilder, String inputTopic, Class<? extends ObjectModifier> inputTopicClass, GenericSerde genericSerde) {
         streamsBuilder.stream(inputTopic, Consumed.with(Serdes.String(), JSONSerde.objectModifierSerde(inputTopicClass)))
-        .mapValues(GenericSerde::toGenericField).to(FINAL_TOPIC, Produced.with(Serdes.String(), GenericSerde.serde()));
+        .mapValues(genericSerde::toGenericField).to(FINAL_TOPIC, Produced.with(Serdes.String(), GenericSerde.serde()));
     }
 }

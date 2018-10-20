@@ -21,20 +21,23 @@ public class QuestionCreated implements QuestionModifier {
         this.createDate = createDate;
     }
 
+    public QuestionCreated() {
+    }
+
     @Override
     public String ID() {
         return QuestionID.from(this.market, this.questionID);
     }
 
     @Override
-    public QuestionState modify(QuestionState obj) {
+    public QuestionState doSomething(QuestionState obj) {
         if (QuestionStateChecker.idNotMatching(obj, this.ID())) {
             throw new IdNotMatchingException("Wrong id");
         }
         if (QuestionStateChecker.isInitialized(obj)) {
             return obj;
         }
-        return new QuestionState(questionID, market, content).withLastModification(this.createDate);
+        return new QuestionState(market, questionID, content).withLastModification(this.createDate);
     }
 
     public int getQuestionID() {

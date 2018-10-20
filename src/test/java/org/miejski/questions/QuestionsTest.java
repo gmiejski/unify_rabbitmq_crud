@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.events.QuestionCreated;
+import org.miejski.simple.objects.GenericObjectsSerde;
 import org.miejski.simple.objects.ObjectState;
 import org.miejski.simple.objects.ObjectsTopology;
 import org.miejski.simple.objects.events.ObjectCreation;
@@ -26,13 +27,14 @@ import java.util.Properties;
 
 public class QuestionsTest {
 
-    private final String market = "1";
+    private final String market = "us";
     private final int questionID = 100;
     private final String content = "some content";
     private static TopologyTestDriver testDriver;
     private static KeyValueStore<String, QuestionState> store;
 
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
+    private String questionRef = QuestionID.from(market, questionID);
 
 
     @BeforeEach
@@ -56,7 +58,7 @@ public class QuestionsTest {
 
     @Test
     void shouldProperlyUseGenericQuestionEventsInOneTopic() {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, market, GenericSerde.toGenericField(new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, QuestionsGenericSerde.build().toGenericField(new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
 
         testDriver.pipeInput(genericCreate);
 

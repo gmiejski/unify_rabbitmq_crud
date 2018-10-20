@@ -23,7 +23,7 @@ public class QuestionsAggregator implements Aggregator<String, GenericField, Que
         try {
             Object o = this.objectMapper.readValue(value.getData(), serializers.get(value.getObjectName()));
             QuestionModifier modifier = (QuestionModifier) o;
-            return modifier.modify(aggregate);
+            return modifier.doSomething(aggregate);
         } catch (IOException e) {
             e.printStackTrace();
         }

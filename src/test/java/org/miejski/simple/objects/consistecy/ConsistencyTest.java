@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.miejski.simple.objects.GenericObjectsSerde;
 import org.miejski.simple.objects.ObjectState;
 import org.miejski.simple.objects.ObjectsTopology;
 import org.miejski.simple.objects.events.ObjectModifier;
@@ -61,7 +62,7 @@ public class ConsistencyTest {
         Map<String, ObjectState> expectedStates = generatedData.finalState();
         Collections.shuffle(events);
         events.stream()
-                .map(e -> genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, e.ID(), GenericSerde.toGenericField(e)))
+                .map(e -> genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, e.ID(), GenericObjectsSerde.build().toGenericField(e)))
                 .forEach(e -> testDriver.pipeInput(e));
 
 

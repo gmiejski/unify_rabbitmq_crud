@@ -6,6 +6,7 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.miejski.questions.QuestionObjectMapper;
 import org.miejski.simple.objects.ObjectState;
+import org.miejski.simple.objects.events.ObjectModifier;
 
 import java.io.IOException;
 import java.util.Map;
@@ -13,9 +14,13 @@ import java.util.Map;
 
 public class JSONSerde {
 
+    public static Serde<ObjectModifier> serde2(Class<? extends ObjectModifier> c) {
+        return Serdes.serdeFrom(new JSONSer<>(), new GenericJSONDe<>(c));
+    }
+
     public static Serde<ObjectState> serde() {
         return Serdes.serdeFrom(new JSONSer<>(), new JSONDe());
-    }
+    } // TODO unify
 }
 
 class JSONSer<T> implements org.apache.kafka.common.serialization.Serializer<T> {
@@ -75,4 +80,5 @@ class JSONDe implements org.apache.kafka.common.serialization.Deserializer<Objec
         System.out.println("closing ObjectDe");
     }
 }
+
 

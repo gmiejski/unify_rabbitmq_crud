@@ -1,5 +1,6 @@
 package org.miejski.simple.objects.events;
 
+import com.google.common.base.Objects;
 import org.miejski.simple.objects.IdNotMatchingException;
 import org.miejski.simple.objects.ObjectState;
 
@@ -32,5 +33,19 @@ public class ObjectDelete implements ObjectModifier {
     @Override
     public String ID() {
         return this.id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectDelete that = (ObjectDelete) o;
+        return Objects.equal(id, that.id) &&
+                deleteDate.isEqual(that.deleteDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id, deleteDate);
     }
 }

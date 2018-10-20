@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class ObjectsTopology implements TopologyBuilder {
 
-    public static final String NEW_TOPIC = "new_topic";
+    public static final String CREATE_TOPIC = "create_topic";
     public static final String UPDATE_TOPIC = "update_topic";
     public static final String DELETE_TOPIC = "delete_topic";
     public static final String FINAL_TOPIC = "final_topic";
@@ -33,7 +33,7 @@ public class ObjectsTopology implements TopologyBuilder {
     public Topology buildTopology() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
 //        KStream<Integer, GenericField> allGenerics = streamsBuilder
-//                .stream(Arrays.asList(NEW_TOPIC, UPDATE_TOPIC, DELETE_TOPIC), Consumed.with(Serdes.Integer(), GenericSerde.serde()));
+//                .stream(Arrays.asList(CREATE_TOPIC, UPDATE_TOPIC, DELETE_TOPIC), Consumed.with(Serdes.Integer(), GenericSerde.serde()));
 
         HashMap<String, Class> serializers = new HashMap<>();
         serializers.put(ObjectCreation.class.getSimpleName(), ObjectCreation.class);
@@ -41,7 +41,6 @@ public class ObjectsTopology implements TopologyBuilder {
         serializers.put(ObjectDelete.class.getSimpleName(), ObjectDelete.class);
 
         KStream<String, GenericField> allGenerics = streamsBuilder.stream(FINAL_TOPIC, Consumed.with(Serdes.String(), GenericSerde.serde()));
-
 
         ObjectsAggregator aggregator = new ObjectsAggregator(serializers);
 

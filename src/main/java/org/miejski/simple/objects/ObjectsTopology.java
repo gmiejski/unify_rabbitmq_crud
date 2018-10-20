@@ -26,8 +26,6 @@ public class ObjectsTopology implements TopologyBuilder {
     public static final String UPDATE_TOPIC = "update_topic";
     public static final String DELETE_TOPIC = "delete_topic";
     public static final String FINAL_TOPIC = "final_topic";
-    public static final String MODIFIERS_TOPIC = "modifiers_topic";
-    private static final String OBJECTS_TABLE_TOPIC = "something";
     public static final String OBJECTS_STORE_NAME = "objectsFinal";
 
 

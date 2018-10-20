@@ -1,4 +1,4 @@
-package org.miejski.simple.objects;
+package org.miejski.exceptions;
 
 public class IdNotMatchingException extends RuntimeException {
     public IdNotMatchingException(String ID) {

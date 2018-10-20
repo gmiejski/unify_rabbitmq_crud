@@ -8,7 +8,7 @@ import org.miejski.simple.objects.events.ObjectModifier;
 
 import java.time.ZonedDateTime;
 
-class JSONSerdeTest {
+class GenericJSONSerdeTest {
 
     @Test
     void shouldUseGenericJSONSerde() {

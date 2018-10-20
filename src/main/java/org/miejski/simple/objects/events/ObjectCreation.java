@@ -1,6 +1,6 @@
 package org.miejski.simple.objects.events;
 
-import org.miejski.simple.objects.IdNotMatchingException;
+import org.miejski.exceptions.IdNotMatchingException;
 import org.miejski.simple.objects.ObjectState;
 
 import java.time.ZonedDateTime;

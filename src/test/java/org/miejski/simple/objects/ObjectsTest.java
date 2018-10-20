@@ -29,8 +29,8 @@ public class ObjectsTest {
     private static TopologyTestDriver testDriver;
     private static KeyValueStore<String, ObjectState> store;
 
-    private ConsumerRecordFactory<String, ObjectModifier> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.serde2(ObjectCreation.class).serializer());
-    private ConsumerRecordFactory<String, ObjectModifier> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.serde2(ObjectUpdate.class).serializer());
+    private ConsumerRecordFactory<String, ObjectModifier> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectCreation.class).serializer());
+    private ConsumerRecordFactory<String, ObjectModifier> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectUpdate.class).serializer());
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
 
 

@@ -33,7 +33,7 @@ public class ObjectsTopology implements TopologyBuilder {
     public Topology buildTopology() {
         StreamsBuilder streamsBuilder = new StreamsBuilder();
 //        KStream<Integer, GenericField> allGenerics = streamsBuilder
-//                .stream(Arrays.asList(CREATE_TOPIC, UPDATE_TOPIC, DELETE_TOPIC), Consumed.with(Serdes.Integer(), GenericSerde.serde()));
+//                .stream(Arrays.asList(CREATE_TOPIC, UPDATE_TOPIC, DELETE_TOPIC), Consumed.with(Serdes.Integer(), GenericSerde.objectStateSerde()));
 
         HashMap<String, Class> serializers = new HashMap<>();
         serializers.put(ObjectCreation.class.getSimpleName(), ObjectCreation.class);
@@ -44,7 +44,7 @@ public class ObjectsTopology implements TopologyBuilder {
 
         ObjectsAggregator aggregator = new ObjectsAggregator(serializers);
 
-        Materialized<String, ObjectState, KeyValueStore<Bytes, byte[]>> store = Materialized.<String, ObjectState, KeyValueStore<Bytes, byte[]>>as(OBJECTS_STORE_NAME).withKeySerde(Serdes.String()).withValueSerde(JSONSerde.serde());
+        Materialized<String, ObjectState, KeyValueStore<Bytes, byte[]>> store = Materialized.<String, ObjectState, KeyValueStore<Bytes, byte[]>>as(OBJECTS_STORE_NAME).withKeySerde(Serdes.String()).withValueSerde(JSONSerde.objectStateSerde());
         allGenerics.groupByKey()
                 .aggregate(ObjectState::new, aggregator, store);
         return streamsBuilder.build();

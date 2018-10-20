@@ -14,7 +14,7 @@ class JSONSerdeTest {
     void shouldUseGenericJSONSerde() {
         ObjectDelete initial = new ObjectDelete("someKey", ZonedDateTime.now());
 
-        Serde<ObjectModifier> serde = JSONSerde.serde2(ObjectDelete.class);
+        Serde<ObjectModifier> serde = JSONSerde.objectModifierSerde(ObjectDelete.class);
 
         byte[] serialize = serde.serializer().serialize("", initial);
 

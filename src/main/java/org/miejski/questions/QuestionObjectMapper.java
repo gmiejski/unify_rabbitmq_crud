@@ -11,7 +11,6 @@ public class QuestionObjectMapper {
     public static ObjectMapper build() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper;
     }

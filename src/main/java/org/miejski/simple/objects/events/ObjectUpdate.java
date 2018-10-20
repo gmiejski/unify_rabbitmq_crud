@@ -1,5 +1,6 @@
 package org.miejski.simple.objects.events;
 
+import org.miejski.simple.objects.IdNotMatchingException;
 import org.miejski.simple.objects.ObjectState;
 
 import java.time.ZonedDateTime;
@@ -7,31 +8,39 @@ import java.time.ZonedDateTime;
 public class ObjectUpdate implements ObjectModifier {
 
     private int value;
-    private String ID;
+    private String id;
     private ZonedDateTime updateDate;
 
     public ObjectUpdate() {
     }
 
-    public ObjectUpdate(String ID, int value, ZonedDateTime updateDate) {
-        this.ID = ID;
+    public ObjectUpdate(String id, int value, ZonedDateTime updateDate) {
+        this.id = id;
         this.value = value;
         this.updateDate = updateDate;
     }
 
     @Override
-    public ObjectState doSomething(ObjectState obj) {
-        if (obj != null && obj.ID()!= null && !this.ID.equals(obj.ID())) {
-            throw new RuntimeException("Wrong ID");
+    public ObjectState doSomething(ObjectState state) {
+        if (ObjectState.idNotMatching(state, this.id)) {
+            throw new IdNotMatchingException("Wrong id");
         }
-        if (obj == null || !obj.isInitialized()) {
-            return new ObjectState(value).withID(this.ID());// TODO move ID to constructor && get rid of initialized (base on ID instead)
+        if (!ObjectState.isInitialized(state)) {
+            return new ObjectState(id, value).withLastModification(this.updateDate);
         }
-        return obj.withValue(value);
+        if (this.updateDate.isBefore(state.getLastModification())) {
+            return state;
+        }
+
+        return state.withValue(value).withLastModification(updateDate);
     }
 
     @Override
     public String ID() {
-        return this.ID;
+        return this.id;
+    }
+
+    public ZonedDateTime getUpdateDate() {
+        return updateDate;
     }
 }

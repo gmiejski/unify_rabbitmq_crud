@@ -11,7 +11,10 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -37,21 +40,21 @@ class EventWithDate {
 
 class GeneratedData {
 
-    private List<EventWithDate> events;
+    private List<ObjectModifier> events;
 
-    public GeneratedData(List<EventWithDate> collect) {
+    public GeneratedData(List<ObjectModifier> collect) {
         this.events = collect;
     }
 
     public List<ObjectModifier> getEvents() {
-        return this.events.stream().map(EventWithDate::getEvent).collect(toList());
+        return this.events;
     }
 
     public Map<String, ObjectState> finalState() {
         Map<String, ObjectState> finalStates = this.events.stream()
-                .collect(groupingBy(x -> x.getEvent().ID()))
+                .collect(groupingBy(ObjectModifier::ID))
                 .entrySet().stream()
-                .collect(toMap(Map.Entry::getKey, kv -> this.toObjectState(kv.getValue().stream().map(EventWithDate::getEvent).collect(toList()))));
+                .collect(toMap(Map.Entry::getKey, kv -> this.toObjectState(kv.getValue())));
         return finalStates;
     }
 
@@ -64,7 +67,7 @@ class GeneratedData {
     }
 
     public List<ObjectModifier> getEventsFor(String ID) {
-        return this.events.stream().filter(x -> x.getEvent().ID().equals(ID)).map(EventWithDate::getEvent).collect(toList());
+        return this.events.stream().filter(event -> event.ID().equals(ID)).collect(toList());
     }
 }
 
@@ -82,27 +85,47 @@ public class Generator {
     }
 
     public GeneratedData generate() {
-        List<EventWithDate> collect = IntStream.range(0, eventsCount)
+
+        Map<String, ObjectCreation> createEventsForAllStates = generateCreateEvents(this.maxObjectID);
+        List<ObjectModifier> createEvents = createEventsForAllStates.values().stream().map(x -> (ObjectModifier) x).collect(toList());
+        List<ObjectModifier> collect = IntStream.range(createEventsForAllStates.size(), eventsCount)
                 .boxed()
-                .map(v -> new EventWithDate(this.getEvent(v), v))
+                .map(eventTime -> {
+                    String objectID = this.nextObjectID();
+                    return new EventWithDate(this.getEvent(objectID, eventTime, createEventsForAllStates.get(objectID)), eventTime);
+                })
+                .map(EventWithDate::getEvent)
                 .collect(toList());
-        return new GeneratedData(collect);
+        return new GeneratedData(Stream.concat(createEvents.stream(), collect.stream()).collect(toList()));
     }
 
-    private ObjectModifier getEvent(Integer eventID) {
+    private Map<String, ObjectCreation> generateCreateEvents(int maxObjectID) {
+        return IntStream.range(0, maxObjectID)
+                .boxed().map(id -> new ObjectCreation(String.valueOf(id), this.getRandomValue(), startingDateTime.plusMinutes(id)))
+                .collect(Collectors.toMap(ObjectCreation::ID, Function.identity()));
+    }
+
+    private ObjectModifier getEvent(String objectID, Integer eventID, ObjectCreation initialObjectCreation) {
 
         ZonedDateTime now = startingDateTime.plusMinutes(eventID);
         Integer next = this.eventsPercentages.next();
-        String objectID = String.valueOf(new Random().nextInt(this.maxObjectID));
 
         switch (next) {
             case 1:
-                return new ObjectCreation(objectID, new Random().nextInt(100), now);
+                return new ObjectCreation(objectID, initialObjectCreation.getValue(), initialObjectCreation.getCreateDate());
             case 2:
-                return new ObjectUpdate(objectID, new Random().nextInt(100), now);
+                return new ObjectUpdate(objectID, getRandomValue(), now);
             case 3:
                 return new ObjectDelete(objectID, now);
         }
         throw new RuntimeException("Generating not expected event");
+    }
+
+    private int getRandomValue() {
+        return new Random().nextInt(100);
+    }
+
+    private String nextObjectID() {
+        return String.valueOf(new Random().nextInt(this.maxObjectID));
     }
 }

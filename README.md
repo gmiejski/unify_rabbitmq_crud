@@ -42,4 +42,4 @@ https://docs.confluent.io/current/streams/kafka-streams-examples/docs/index.html
     * [ ] TODO fill this up
      
 ## Things to check at the end:
-* [ ] make sure topics are partitioned by question ID
+* [ ] make sure topics are partitioned by question id

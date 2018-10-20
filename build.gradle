@@ -17,4 +17,5 @@ dependencies {
 
     compile group: 'org.apache.kafka', name: 'kafka-streams', version: '2.0.0'
     compile group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.0.0'
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.7'
 }

@@ -6,6 +6,8 @@ import org.miejski.simple.objects.events.ObjectDelete;
 import org.miejski.simple.objects.events.ObjectModifier;
 import org.miejski.simple.objects.events.ObjectUpdate;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -68,6 +70,7 @@ class GeneratedData {
 
 public class Generator {
 
+    private final ZonedDateTime startingDateTime = ZonedDateTime.of(2018, 10, 10, 0, 0, 0, 0, ZoneId.systemDefault());
     private final EventsPercentages eventsPercentages;
     private final int eventsCount;
     private int maxObjectID;
@@ -81,22 +84,24 @@ public class Generator {
     public GeneratedData generate() {
         List<EventWithDate> collect = IntStream.range(0, eventsCount)
                 .boxed()
-                .map(v -> new EventWithDate(this.getEvent(), v))
+                .map(v -> new EventWithDate(this.getEvent(v), v))
                 .collect(toList());
         return new GeneratedData(collect);
     }
 
-    private ObjectModifier getEvent() {
+    private ObjectModifier getEvent(Integer eventID) {
+
+        ZonedDateTime now = startingDateTime.plusMinutes(eventID);
         Integer next = this.eventsPercentages.next();
         String objectID = String.valueOf(new Random().nextInt(this.maxObjectID));
 
         switch (next) {
             case 1:
-                return new ObjectCreation(objectID, new Random().nextInt(100));
+                return new ObjectCreation(objectID, new Random().nextInt(100), now);
             case 2:
-                return new ObjectUpdate(objectID, new Random().nextInt(100));
+                return new ObjectUpdate(objectID, new Random().nextInt(100), now);
             case 3:
-                return new ObjectDelete(objectID);
+                return new ObjectDelete(objectID, now);
         }
         throw new RuntimeException("Generating not expected event");
     }

@@ -2,15 +2,19 @@ package org.miejski.simple.objects.events;
 
 import org.miejski.simple.objects.ObjectState;
 
+import java.time.ZonedDateTime;
+
 public class ObjectDelete implements ObjectModifier {
 
     private String ID;
+    private ZonedDateTime deleteDate;
 
     public ObjectDelete() {
     }
 
-    public ObjectDelete(String ID) {
+    public ObjectDelete(String ID, ZonedDateTime deleteDate) {
         this.ID = ID;
+        this.deleteDate = deleteDate;
     }
 
     @Override

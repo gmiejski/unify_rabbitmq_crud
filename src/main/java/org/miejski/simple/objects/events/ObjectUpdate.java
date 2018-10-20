@@ -2,17 +2,21 @@ package org.miejski.simple.objects.events;
 
 import org.miejski.simple.objects.ObjectState;
 
+import java.time.ZonedDateTime;
+
 public class ObjectUpdate implements ObjectModifier {
 
     private int value;
     private String ID;
+    private ZonedDateTime updateDate;
 
     public ObjectUpdate() {
     }
 
-    public ObjectUpdate(String ID, int value) {
+    public ObjectUpdate(String ID, int value, ZonedDateTime updateDate) {
         this.ID = ID;
         this.value = value;
+        this.updateDate = updateDate;
     }
 
     @Override

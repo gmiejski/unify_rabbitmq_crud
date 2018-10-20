@@ -2,17 +2,21 @@ package org.miejski.simple.objects.events;
 
 import org.miejski.simple.objects.ObjectState;
 
+import java.time.ZonedDateTime;
+
 public class ObjectCreation implements ObjectModifier {
 
     private String ID;
     private int value;
-    // TODO add lastModificationDate
-    public ObjectCreation() {
-    }
+    private ZonedDateTime createDate;
 
-    public ObjectCreation(String ID, int value) {
+    public ObjectCreation(String ID, int value, ZonedDateTime createDate) {
         this.ID = ID;
         this.value = value;
+        this.createDate = createDate;
+    }
+
+    public ObjectCreation() {
     }
 
     @Override
@@ -29,5 +33,9 @@ public class ObjectCreation implements ObjectModifier {
     @Override
     public String ID() {
         return this.ID;
+    }
+
+    public ZonedDateTime getCreateDate() {
+        return createDate;
     }
 }

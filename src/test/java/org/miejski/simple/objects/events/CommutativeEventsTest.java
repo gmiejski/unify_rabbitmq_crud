@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.miejski.simple.objects.ObjectState;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,9 +13,10 @@ import java.util.List;
 public class CommutativeEventsTest {
 
     private String ID = "1";
-    ObjectCreation objectCreation = new ObjectCreation(ID, 10);
-    ObjectUpdate objectUpdate = new ObjectUpdate(ID, 20);
-    ObjectDelete objectDelete = new ObjectDelete(ID);
+    private final ZonedDateTime startingDateTime = ZonedDateTime.of(2018, 10, 10, 0, 0, 0, 0, ZoneId.systemDefault());
+    ObjectCreation objectCreation = new ObjectCreation(ID, 10, startingDateTime);
+    ObjectUpdate objectUpdate = new ObjectUpdate(ID, 20, startingDateTime.plusMinutes(1));
+    ObjectDelete objectDelete = new ObjectDelete(ID, startingDateTime.plusMinutes(2));
 
     @Test
     void CreateAndUpdate() {
@@ -58,8 +61,8 @@ public class CommutativeEventsTest {
                 apply(objectUpdate, objectDelete, objectCreation),
                 apply(objectUpdate, objectCreation, objectDelete));
 
-        for (int i = 0; i < all.size()-1 ; i++ ){
-            for (int j = i+1 ; j< all.size() ; j++) {
+        for (int i = 0; i < all.size() - 1; i++) {
+            for (int j = i + 1; j < all.size(); j++) {
                 Assertions.assertEquals(all.get(i), all.get(j));
             }
         }

@@ -31,6 +31,7 @@ public class ObjectsTest {
 
     private ConsumerRecordFactory<String, ObjectModifier> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectCreation.class).serializer());
     private ConsumerRecordFactory<String, ObjectModifier> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectUpdate.class).serializer());
+    private ConsumerRecordFactory<String, ObjectModifier> deleteRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectDelete.class).serializer());
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
 
 
@@ -80,10 +81,13 @@ public class ObjectsTest {
 
     @Test
     void shouldProduceProperOutputFromSeparateTopics() {
-        testDriver.pipeInput(createRecordFactory.create(ObjectsTopology.CREATE_TOPIC, key, new ObjectCreation(key, 20, ZonedDateTime.now())));
-        testDriver.pipeInput(updateRecordFactory.create(ObjectsTopology.UPDATE_TOPIC, key, new ObjectUpdate(key, 7, ZonedDateTime.now())));
-//        testDriver.pipeInput(deleteRecordFactory.create(ObjectsTopology.DELETE_TOPIC, key, new ObjectDelete(key, ZonedDateTime.now())));
+        testDriver.pipeInput(createRecordFactory.create(ObjectsTopology.CREATE_TOPIC, key, new ObjectCreation(key, 200, ZonedDateTime.now())));
+        testDriver.pipeInput(updateRecordFactory.create(ObjectsTopology.UPDATE_TOPIC, key, new ObjectUpdate(key, 70, ZonedDateTime.now())));
+        testDriver.pipeInput(deleteRecordFactory.create(ObjectsTopology.DELETE_TOPIC, key, new ObjectDelete(key, ZonedDateTime.now())));
 
+        ObjectState state = store.get(key);
+
+        Assertions.assertEquals(70, state.getValue());
+        Assertions.assertTrue(state.isDeleted());
     }
-
 }

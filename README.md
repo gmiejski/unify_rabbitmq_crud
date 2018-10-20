@@ -22,7 +22,7 @@
 
 * Objects playground
     * [x] Create test that will check for data consistency
-    * [ ] Make 3 channels and pass them to single one with proper serdes
+    * [x] Make 3 channels and pass them to single one with proper serdes
     
 * Questions
     * [ ] Implement single channel aggregation with test

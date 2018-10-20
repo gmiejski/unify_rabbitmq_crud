@@ -14,21 +14,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.simple.objects.events.ObjectCreation;
 import org.miejski.simple.objects.events.ObjectDelete;
+import org.miejski.simple.objects.events.ObjectModifier;
 import org.miejski.simple.objects.events.ObjectUpdate;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericSerde;
+import org.miejski.simple.objects.serdes.JSONSerde;
 
 import java.time.ZonedDateTime;
 import java.util.Properties;
 
 public class ObjectsTest {
 
-    private final String numberKey = "1";
+    private final String key = "1";
     private static TopologyTestDriver testDriver;
     private static KeyValueStore<String, ObjectState> store;
 
-    private ConsumerRecordFactory<String, ObjectCreation> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), ObjectsCreationSerde.serde().serializer());
-    private ConsumerRecordFactory<String, ObjectUpdate> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), ObjectsUpdateSerde.serde().serializer());
+    private ConsumerRecordFactory<String, ObjectModifier> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectCreation.class).serializer());
+    private ConsumerRecordFactory<String, ObjectModifier> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectUpdate.class).serializer());
+    private ConsumerRecordFactory<String, ObjectModifier> deleteRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.objectModifierSerde(ObjectDelete.class).serializer());
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
 
 
@@ -55,24 +58,36 @@ public class ObjectsTest {
 
     @Test
     void shouldProperlyUseGenericObjectsInOneTopic() {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectCreation(numberKey, 20, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, key, GenericSerde.toGenericField(new ObjectCreation(key, 20, ZonedDateTime.now())));
 
         testDriver.pipeInput(genericCreate);
 
-        ObjectState state = store.get(numberKey);
+        ObjectState state = store.get(key);
         Assertions.assertEquals(20, state.getValue());
 
 
-        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectUpdate(numberKey, 7, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, key, GenericSerde.toGenericField(new ObjectUpdate(key, 7, ZonedDateTime.now())));
         testDriver.pipeInput(genericUpdate);
 
-        state = store.get(numberKey);
+        state = store.get(key);
         Assertions.assertEquals(7, state.getValue());
         Assertions.assertFalse(state.isDeleted());
 
-        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectDelete(numberKey, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, key, GenericSerde.toGenericField(new ObjectDelete(key, ZonedDateTime.now())));
         testDriver.pipeInput(genericDelete);
-        state = store.get(numberKey);
+        state = store.get(key);
+        Assertions.assertTrue(state.isDeleted());
+    }
+
+    @Test
+    void shouldProduceProperOutputFromSeparateTopics() {
+        testDriver.pipeInput(createRecordFactory.create(ObjectsTopology.CREATE_TOPIC, key, new ObjectCreation(key, 200, ZonedDateTime.now())));
+        testDriver.pipeInput(updateRecordFactory.create(ObjectsTopology.UPDATE_TOPIC, key, new ObjectUpdate(key, 70, ZonedDateTime.now())));
+        testDriver.pipeInput(deleteRecordFactory.create(ObjectsTopology.DELETE_TOPIC, key, new ObjectDelete(key, ZonedDateTime.now())));
+
+        ObjectState state = store.get(key);
+
+        Assertions.assertEquals(70, state.getValue());
         Assertions.assertTrue(state.isDeleted());
     }
 }

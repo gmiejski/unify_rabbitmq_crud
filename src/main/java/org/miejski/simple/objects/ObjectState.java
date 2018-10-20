@@ -1,26 +1,41 @@
 package org.miejski.simple.objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
+
 public class ObjectState {
+
+    public static boolean isInitialized(ObjectState state) {
+        return state != null && state.isInitialized();
+    }
+
+    public static boolean idNotMatching(ObjectState state, String ID) {
+        return state != null && state.ID() != null && !ID.equals(state.ID());
+    }
 
     public static int NOT_SET = Integer.MIN_VALUE;
 
     private String ID;
     private int value = 0;
     private boolean isDeleted = false;
-    private boolean isInitialized = false;
+    private ZonedDateTime lastModification = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.systemDefault());
 
-    public ObjectState(int value) {
-        this(value, false);
+    public ObjectState(String id, int value) {
+        this(id, value, false);
     }
 
-    public ObjectState(int value, boolean isDeleted) {
+    public ObjectState(String id, int value, boolean isDeleted) {
+        this.ID = id;
         this.value = value;
         this.isDeleted = isDeleted;
-        this.isInitialized = true;
     }
 
     public ObjectState() {
@@ -35,9 +50,9 @@ public class ObjectState {
         return value;
     }
 
-    @JsonProperty(value = "isInitialized")
+    @JsonIgnore
     public boolean isInitialized() {
-        return isInitialized;
+        return this.ID != null;
     }
 
     @JsonProperty(value = "isDeleted")
@@ -45,21 +60,22 @@ public class ObjectState {
         return isDeleted;
     }
 
-    public ObjectState withID(String id) {
-        if (this.ID == null || this.ID.isEmpty()) {
-            this.ID = id;
-        } else if (!this.ID.equals(id)) {
-            throw new RuntimeException("Wrong objects IDs are being merged!!!!!");
-        }
-        return this;
-    }
-
     public ObjectState withValue(int value) {
-        return new ObjectState(value).withID(this.ID).deleted(this.isDeleted());
+        return new ObjectState(this.ID, value).deleted(this.isDeleted());
     }
 
     private ObjectState deleted(boolean deleted) {
-        return new ObjectState(value, deleted).withID(this.ID);
+        return new ObjectState(this.ID, value, deleted);
+    }
+
+    public ObjectState withLastModification(ZonedDateTime lastModification) {
+        ObjectState objectState = new ObjectState(this.ID, value, this.isDeleted);
+        objectState.lastModification = lastModification;
+        return objectState;
+    }
+
+    public ZonedDateTime getLastModification() {
+        return lastModification;
     }
 
     @Override
@@ -72,6 +88,8 @@ public class ObjectState {
         }
         if (this.isDeleted() && that.isDeleted()) {
             return true;
+            // TODO Would be great to have this, but this would fail commutative delete before create :(
+            // return this.getValue() == that.getValue();
         }
         if (this.isDeleted() || that.isDeleted()) {
             return false;
@@ -82,5 +100,15 @@ public class ObjectState {
     @Override
     public int hashCode() {
         return Objects.hash(ID);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("ID", ID)
+                .add("value", value)
+                .add("isDeleted", isDeleted)
+                .add("lastModification", lastModification)
+                .toString();
     }
 }

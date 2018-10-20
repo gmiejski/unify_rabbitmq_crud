@@ -1,33 +1,46 @@
 package org.miejski.simple.objects.events;
 
+import org.miejski.simple.objects.IdNotMatchingException;
 import org.miejski.simple.objects.ObjectState;
+
+import java.time.ZonedDateTime;
 
 public class ObjectCreation implements ObjectModifier {
 
-    private String ID;
+    private String id;
     private int value;
-    // TODO add lastModificationDate
-    public ObjectCreation() {
+    private ZonedDateTime createDate;
+
+    public ObjectCreation(String id, int value, ZonedDateTime createDate) {
+        this.id = id;
+        this.value = value;
+        this.createDate = createDate;
     }
 
-    public ObjectCreation(String ID, int value) {
-        this.ID = ID;
-        this.value = value;
+    public ObjectCreation() {
     }
 
     @Override
     public ObjectState doSomething(ObjectState obj) {
-        if (obj != null && obj.ID() != null && !this.ID.equals(obj.ID())) {
-            throw new RuntimeException("Wrong ID");
+        if (ObjectState.idNotMatching(obj, this.id)) {
+            throw new IdNotMatchingException("Wrong id");
         }
-        if (obj != null && obj.isInitialized()) {
+        if (ObjectState.isInitialized(obj)) {
             return obj;
         }
-        return new ObjectState(value).withID(this.ID());
+        return new ObjectState(id, value).withLastModification(this.createDate);
     }
 
     @Override
     public String ID() {
-        return this.ID;
+        return this.id;
+    }
+
+    public ZonedDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public int getValue() {
+        return this.value;
     }
 }

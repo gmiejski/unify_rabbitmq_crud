@@ -18,6 +18,7 @@ import org.miejski.simple.objects.events.ObjectUpdate;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericSerde;
 
+import java.time.ZonedDateTime;
 import java.util.Properties;
 
 public class ObjectsTest {
@@ -29,6 +30,7 @@ public class ObjectsTest {
     private ConsumerRecordFactory<String, ObjectCreation> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), ObjectsCreationSerde.serde().serializer());
     private ConsumerRecordFactory<String, ObjectUpdate> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), ObjectsUpdateSerde.serde().serializer());
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
+
 
     @BeforeEach
     void setUp() {
@@ -53,7 +55,7 @@ public class ObjectsTest {
 
     @Test
     void shouldProperlyUseGenericObjectsInOneTopic() {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectCreation(numberKey, 20)));
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectCreation(numberKey, 20, ZonedDateTime.now())));
 
         testDriver.pipeInput(genericCreate);
 
@@ -61,14 +63,14 @@ public class ObjectsTest {
         Assertions.assertEquals(20, state.getValue());
 
 
-        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectUpdate(numberKey, 7)));
+        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectUpdate(numberKey, 7, ZonedDateTime.now())));
         testDriver.pipeInput(genericUpdate);
 
         state = store.get(numberKey);
         Assertions.assertEquals(7, state.getValue());
         Assertions.assertFalse(state.isDeleted());
 
-        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectDelete(numberKey)));
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, numberKey, GenericSerde.toGenericField(new ObjectDelete(numberKey, ZonedDateTime.now())));
         testDriver.pipeInput(genericDelete);
         state = store.get(numberKey);
         Assertions.assertTrue(state.isDeleted());

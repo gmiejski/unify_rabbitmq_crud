@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.miejski.simple.objects.ObjectState;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,9 +13,13 @@ import java.util.List;
 public class CommutativeEventsTest {
 
     private String ID = "1";
-    ObjectCreation objectCreation = new ObjectCreation(ID, 10);
-    ObjectUpdate objectUpdate = new ObjectUpdate(ID, 20);
-    ObjectDelete objectDelete = new ObjectDelete(ID);
+    private final ZonedDateTime startingDateTime = ZonedDateTime.of(2018, 10, 10, 0, 0, 0, 0, ZoneId.systemDefault());
+    private int initialValue = 10;
+    private int updatedValue = 20;
+
+    private ObjectCreation objectCreation = new ObjectCreation(ID, initialValue, startingDateTime);
+    private ObjectUpdate objectUpdate = new ObjectUpdate(ID, updatedValue, startingDateTime.plusMinutes(1));
+    private ObjectDelete objectDelete = new ObjectDelete(ID, startingDateTime.plusMinutes(2));
 
     @Test
     void CreateAndUpdate() {
@@ -39,13 +45,61 @@ public class CommutativeEventsTest {
         Assertions.assertEquals(state1, state2);
     }
 
-
     @Test
     void DoubleCreate() {
         ObjectState state1 = apply(objectCreation, objectUpdate, objectCreation);
         ObjectState state2 = apply(objectCreation, objectUpdate);
 
         Assertions.assertEquals(state1, state2);
+    }
+
+    @Test
+    void updateFromPastDoesNotUpdateValue() {
+        ObjectState state = apply(objectCreation, objectUpdate);
+        ObjectModifier secondUpdate = new ObjectUpdate(state.ID(), 10000, startingDateTime.minusMinutes(1));
+
+        state = secondUpdate.doSomething(state);
+
+        Assertions.assertEquals(updatedValue, state.getValue());
+        Assertions.assertEquals(startingDateTime.plusMinutes(1), state.getLastModification());
+        Assertions.assertEquals(objectUpdate.ID(), state.ID());
+    }
+
+    @Test
+    void updatesAfterDeletionCanStillUpdateValue() {
+        ObjectState state = apply(objectCreation, objectUpdate, objectDelete);
+        ObjectModifier secondUpdate = new ObjectUpdate(state.ID(), 10000, startingDateTime.plusHours(1));
+
+        state = secondUpdate.doSomething(state);
+
+        Assertions.assertEquals(10000, state.getValue());
+        Assertions.assertTrue(state.isDeleted());
+    }
+
+    @Test
+    void testSeveralUpdates() {
+        ObjectState state = apply(objectCreation, objectUpdate);
+        ObjectModifier secondUpdate = new ObjectUpdate(state.ID(), 10000, startingDateTime.plusHours(1));
+
+        state = secondUpdate.doSomething(state);
+
+        Assertions.assertEquals(10000, state.getValue());
+        Assertions.assertFalse(state.isDeleted());
+    }
+
+    @Test
+    void applyingEventFromPastDoesNotChangeLastModificationTime() {
+        ObjectState state = apply(objectCreation);
+        ZonedDateTime initialDate = state.getLastModification();
+        List<ObjectModifier> events = Arrays.asList(
+                new ObjectCreation(ID, initialValue, startingDateTime.minusDays(1)),
+                new ObjectUpdate(ID, updatedValue, startingDateTime.minusDays(2)),
+                new ObjectDelete(ID, startingDateTime.minusDays(3)));
+
+        for (ObjectModifier modifier : events) {
+            state = modifier.doSomething(state);
+            Assertions.assertEquals(initialDate, state.getLastModification());
+        }
     }
 
     @Test
@@ -58,8 +112,8 @@ public class CommutativeEventsTest {
                 apply(objectUpdate, objectDelete, objectCreation),
                 apply(objectUpdate, objectCreation, objectDelete));
 
-        for (int i = 0; i < all.size()-1 ; i++ ){
-            for (int j = i+1 ; j< all.size() ; j++) {
+        for (int i = 0; i < all.size() - 1; i++) {
+            for (int j = i + 1; j < all.size(); j++) {
                 Assertions.assertEquals(all.get(i), all.get(j));
             }
         }

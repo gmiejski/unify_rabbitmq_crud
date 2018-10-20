@@ -56,19 +56,20 @@ public class ConsistencyTest {
     void shouldMaintainConsistentResultsForAllOperations() {
         // given
         EventsPercentages eventsPercentages = new EventsPercentages(50, 30, 20);
-        GeneratedData generatedData = new Generator(eventsPercentages, 100, 10).generate();
+        GeneratedData generatedData = new Generator(eventsPercentages, 150, 10).generate();
         List<ObjectModifier> events = generatedData.getEvents();
+        Map<String, ObjectState> expectedStates = generatedData.finalState();
         Collections.shuffle(events);
         events.stream()
                 .map(e -> genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, e.ID(), GenericSerde.toGenericField(e)))
                 .forEach(e -> testDriver.pipeInput(e));
 
-        Map<String, ObjectState> expectedStates = generatedData.finalState();
 
         // when
         KeyValueIterator<String, ObjectState> allInStore = store.all();
-        Map<String, ObjectState> actualStore = toMap(store.all());
+
         // then
+        Map<String, ObjectState> actualStore = toMap(store.all());
         Map<String, List<ObjectModifier>> unmathingStates = new HashMap<>();
 
         while (allInStore.hasNext()) {

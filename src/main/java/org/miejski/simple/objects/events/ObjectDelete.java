@@ -1,31 +1,36 @@
 package org.miejski.simple.objects.events;
 
+import org.miejski.simple.objects.IdNotMatchingException;
 import org.miejski.simple.objects.ObjectState;
+
+import java.time.ZonedDateTime;
 
 public class ObjectDelete implements ObjectModifier {
 
-    private String ID;
+    private String id;
+    private ZonedDateTime deleteDate;
 
     public ObjectDelete() {
     }
 
-    public ObjectDelete(String ID) {
-        this.ID = ID;
+    public ObjectDelete(String id, ZonedDateTime deleteDate) {
+        this.id = id;
+        this.deleteDate = deleteDate;
     }
 
     @Override
     public ObjectState doSomething(ObjectState obj) {
-        if (obj != null && obj.ID() != null && !this.ID.equals(obj.ID())) {
-            throw new RuntimeException("Wrong ID");
+        if (ObjectState.idNotMatching(obj, this.id)) {
+            throw new IdNotMatchingException("Wrong id");
         }
-        if (obj == null || !obj.isInitialized()) {
-            return new ObjectState(ObjectState.NOT_SET, true).withID(this.ID());
+        if (!ObjectState.isInitialized(obj)) {
+            return new ObjectState(id, ObjectState.NOT_SET, true);
         }
-        return new ObjectState(obj.getValue(), true).withID(this.ID());
+        return new ObjectState(id, obj.getValue(), true).withLastModification(obj.getLastModification());
     }
 
     @Override
     public String ID() {
-        return this.ID;
+        return this.id;
     }
 }

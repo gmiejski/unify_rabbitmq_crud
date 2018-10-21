@@ -1,27 +1,25 @@
 package org.miejski.questions.events;
 
+import org.miejski.exceptions.IdNotMatchingException;
 import org.miejski.questions.QuestionID;
 import org.miejski.questions.QuestionState;
-import org.miejski.exceptions.IdNotMatchingException;
 import org.miejski.questions.QuestionStateChecker;
 
 import java.time.ZonedDateTime;
 
-public class QuestionCreated implements QuestionModifier {
+public class QuestionDeleted implements QuestionModifier {
 
     private int questionID;
     private String market;
-    private String content;
-    private ZonedDateTime createDate;
+    private ZonedDateTime deleteDate;
 
-    public QuestionCreated(String market, int questionID, String content, ZonedDateTime createDate) {
+    public QuestionDeleted(String market, int questionID, ZonedDateTime deleteDate) {
         this.questionID = questionID;
         this.market = market;
-        this.content = content;
-        this.createDate = createDate;
+        this.deleteDate = deleteDate;
     }
 
-    public QuestionCreated() {
+    public QuestionDeleted() {
     }
 
     @Override
@@ -34,11 +32,12 @@ public class QuestionCreated implements QuestionModifier {
         if (QuestionStateChecker.idNotMatching(obj, this.ID())) {
             throw new IdNotMatchingException("Wrong id");
         }
-        if (QuestionStateChecker.isInitialized(obj)) {
-            return obj;
+        if (!QuestionStateChecker.isInitialized(obj)) {
+            return new QuestionState(market, questionID, "").delete(this.deleteDate);
         }
-
-        return new QuestionState(market, questionID, content).withLastModification(this.createDate);
+        return obj
+                .withLastModification(obj.getLastModification())
+                .delete(this.deleteDate);
     }
 
     public int getQuestionID() {
@@ -49,11 +48,7 @@ public class QuestionCreated implements QuestionModifier {
         return market;
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public ZonedDateTime getCreateDate() {
-        return createDate;
+    public ZonedDateTime getDeleteDate() {
+        return deleteDate;
     }
 }

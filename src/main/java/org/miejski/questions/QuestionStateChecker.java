@@ -1,12 +1,14 @@
 package org.miejski.questions;
 
+import com.google.common.base.Strings;
+
 public class QuestionStateChecker {
     public static boolean idNotMatching(QuestionState questionState, String id) {
         return false;
     }
 
     public static boolean isInitialized(QuestionState state) {
-        return false;
+        return state != null && !Strings.isNullOrEmpty(state.id());
     }
 
 }

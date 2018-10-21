@@ -29,13 +29,13 @@ public class QuestionUpdated implements QuestionModifier {
         if (QuestionStateChecker.idNotMatching(state, this.ID())) {
             throw new IdNotMatchingException("Wrong id");
         }
-        if (QuestionStateChecker.isInitialized(state)) {
-            return state;
+        if (!QuestionStateChecker.isInitialized(state)) {
+            return new QuestionState(market, questionID, content).withLastModification(this.updateDate);
         }
         if (this.updateDate.isBefore(state.getLastModification())) {
             return state;
         }
-        return new QuestionState(market, questionID, content).withLastModification(this.updateDate);
+        return new QuestionState(market, questionID, content).withLastModification(this.updateDate).delete(state.getDeleteDate());
 
     }
 

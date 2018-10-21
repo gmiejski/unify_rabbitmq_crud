@@ -20,6 +20,10 @@ public class QuestionsAggregator implements Aggregator<String, GenericField, Que
 
     @Override
     public QuestionState apply(String key, GenericField value, QuestionState aggregate) {
+        if (!serializers.containsKey(value.getObjectName())) {
+            throw new RuntimeException("Cannot desedialize generic value with object of type: " + value.getObjectName());
+        }
+
         try {
             Object o = this.objectMapper.readValue(value.getData(), serializers.get(value.getObjectName()));
             QuestionModifier modifier = (QuestionModifier) o;

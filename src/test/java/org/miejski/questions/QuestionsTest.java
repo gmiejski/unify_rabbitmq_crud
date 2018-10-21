@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.events.QuestionCreated;
+import org.miejski.questions.events.QuestionUpdated;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
 
@@ -24,6 +25,7 @@ public class QuestionsTest {
     private final String market = "us";
     private final int questionID = 100;
     private final String content = "some content";
+    private final String updateContent = "newContent";
     private static TopologyTestDriver testDriver;
     private static KeyValueStore<String, QuestionState> store;
     private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
@@ -61,5 +63,13 @@ public class QuestionsTest {
         Assertions.assertEquals(market, state.getMarket());
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(content, state.getContent());
+
+        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
+        testDriver.pipeInput(genericUpdate);
+
+        state = store.get(QuestionID.from(market, questionID));
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(updateContent, state.getContent());
     }
 }

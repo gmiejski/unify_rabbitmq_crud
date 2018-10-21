@@ -1,5 +1,7 @@
 package org.miejski.questions;
 
+import com.google.common.base.Objects;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -44,5 +46,21 @@ public class QuestionState {
 
     public ZonedDateTime getLastModification() {
         return lastModification;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        QuestionState that = (QuestionState) o;
+        return getQuestionID() == that.getQuestionID() &&
+                Objects.equal(getMarket(), that.getMarket()) &&
+                Objects.equal(getContent(), that.getContent()) &&
+                getLastModification().isEqual(that.getLastModification());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getQuestionID(), getMarket(), getContent(), getLastModification());
     }
 }

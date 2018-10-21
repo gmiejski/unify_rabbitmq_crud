@@ -23,8 +23,8 @@
     * [x] Make 3 channels and pass them to single one with proper serdes
     
 * Questions
-    * [ ] Implement single channel aggregation with test
-    * [ ] Make sure data is consistent
+    * [x] Implement single channel aggregation with test
+    * [x] Make sure data is consistent
     * [ ] Join 3 CRUD topics
     * [ ] find kafka connect to RabbitMQ
     

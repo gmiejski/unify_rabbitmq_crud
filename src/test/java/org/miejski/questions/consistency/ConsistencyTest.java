@@ -1,4 +1,4 @@
-package org.miejski.simple.objects.consistecy;
+package org.miejski.questions.consistency;
 
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -14,9 +14,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.QuestionObjectMapper;
-import org.miejski.simple.objects.ObjectState;
+import org.miejski.questions.QuestionState;
+import org.miejski.questions.QuestionsTopology;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.simple.objects.ObjectsTopology;
-import org.miejski.simple.objects.events.ObjectModifier;
+import org.miejski.simple.objects.consistecy.EventsPercentages;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
 
@@ -30,14 +32,15 @@ public class ConsistencyTest {
 
     private final String objectID = "1";
     private static TopologyTestDriver testDriver;
-    private static KeyValueStore<String, ObjectState> store;
+    private static KeyValueStore<String, QuestionState> store;
     private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
-
+    private final String market = "us";
+    
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericFieldSerde.serde().serializer());
 
     @BeforeEach
     void setUp() {
-        Topology topology = new ObjectsTopology().buildTopology();
+        Topology topology = new QuestionsTopology().buildTopology();
 
         Properties props = new Properties();
         props.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getCanonicalName());
@@ -46,7 +49,9 @@ public class ConsistencyTest {
         props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName());
 
         testDriver = new TopologyTestDriver(topology, props);
-        store = testDriver.getKeyValueStore(ObjectsTopology.OBJECTS_STORE_NAME);
+        store = testDriver.getKeyValueStore(QuestionsTopology.QUESTIONS_STORE_NAME);
+
+
     }
 
     @AfterEach
@@ -58,24 +63,23 @@ public class ConsistencyTest {
     void shouldMaintainConsistentResultsForAllOperations() {
         // given
         EventsPercentages eventsPercentages = new EventsPercentages(50, 30, 20);
-        GeneratedData generatedData = new Generator(eventsPercentages, 150, 10).generate();
-        List<ObjectModifier> events = generatedData.getEvents();
-        Map<String, ObjectState> expectedStates = generatedData.finalState();
+        GeneratedData generatedData = new Generator(eventsPercentages, 150, 10, this.market).generate();
+        List<QuestionModifier> events = generatedData.getEvents();
+        Map<String, QuestionState> expectedStates = generatedData.finalState();
         Collections.shuffle(events);
         events.stream()
-                .map(e -> genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, e.ID(), genericFieldSerde.toGenericField(e)))
+                .map(e -> genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, e.ID(), genericFieldSerde.toGenericField(e)))
                 .forEach(e -> testDriver.pipeInput(e));
 
-
         // when
-        KeyValueIterator<String, ObjectState> allInStore = store.all();
+        KeyValueIterator<String, QuestionState> allInStore = store.all();
 
         // then
-        Map<String, ObjectState> actualStore = toMap(store.all());
-        Map<String, List<ObjectModifier>> unmathingStates = new HashMap<>();
+        Map<String, QuestionState> actualStore = toMap(store.all());
+        Map<String, List<QuestionModifier>> unmathingStates = new HashMap<>();
 
         while (allInStore.hasNext()) {
-            KeyValue<String, ObjectState> next = allInStore.next();
+            KeyValue<String, QuestionState> next = allInStore.next();
             if (!next.value.equals(expectedStates.get(next.key))) {
                 unmathingStates.put(next.key, generatedData.getEventsFor(next.key));
             }
@@ -83,10 +87,10 @@ public class ConsistencyTest {
         Assertions.assertTrue(unmathingStates.isEmpty());
     }
 
-    private Map<String, ObjectState> toMap(KeyValueIterator<String, ObjectState> all) {
-        HashMap<String, ObjectState> result = new HashMap<>();
+    private Map<String, QuestionState> toMap(KeyValueIterator<String, QuestionState> all) {
+        HashMap<String, QuestionState> result = new HashMap<>();
         while (all.hasNext()) {
-            KeyValue<String, ObjectState> next = all.next();
+            KeyValue<String, QuestionState> next = all.next();
             result.put(next.key, next.value);
         }
         return result;

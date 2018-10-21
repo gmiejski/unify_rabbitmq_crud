@@ -61,8 +61,6 @@ public class ObjectsTest {
 
     @Test
     void shouldProperlyUseGenericObjectsInOneTopic() {
-
-
         ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, key, genericObjectSerde.toGenericField(new ObjectCreation(key, 20, ZonedDateTime.now())));
 
         testDriver.pipeInput(genericCreate);

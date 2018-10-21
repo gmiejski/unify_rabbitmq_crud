@@ -10,6 +10,7 @@ import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.miejski.TopologyBuilder;
 import org.miejski.questions.events.QuestionCreated;
+import org.miejski.questions.events.QuestionDeleted;
 import org.miejski.questions.events.QuestionUpdated;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
@@ -32,6 +33,7 @@ public class QuestionsTopology implements TopologyBuilder {
         HashMap<String, Class> serializers = new HashMap<>();
         serializers.put(QuestionCreated.class.getSimpleName(), QuestionCreated.class);
         serializers.put(QuestionUpdated.class.getSimpleName(), QuestionUpdated.class);
+        serializers.put(QuestionDeleted.class.getSimpleName(), QuestionDeleted.class);
 
         KStream<String, GenericField> allGenerics = streamsBuilder.stream(FINAL_TOPIC, Consumed.with(Serdes.String(), GenericFieldSerde.serde()));
 

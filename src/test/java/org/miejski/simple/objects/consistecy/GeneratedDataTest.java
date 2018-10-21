@@ -14,7 +14,6 @@ class GeneratedDataTest {
 
     private int maxID = 5;
 
-
     @Test
     void allCreateEventsHaveSameDateTime() {
         EventsPercentages eventsPercentages = new EventsPercentages(50, 30, 20);

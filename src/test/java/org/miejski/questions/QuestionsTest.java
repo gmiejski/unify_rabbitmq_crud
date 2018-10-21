@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.events.QuestionCreated;
+import org.miejski.questions.events.QuestionDeleted;
 import org.miejski.questions.events.QuestionUpdated;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
@@ -71,5 +72,14 @@ public class QuestionsTest {
         Assertions.assertEquals(market, state.getMarket());
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(updateContent, state.getContent());
+
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionDeleted(market, questionID, ZonedDateTime.now())));
+        testDriver.pipeInput(genericDelete);
+
+        state = store.get(QuestionID.from(market, questionID));
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(updateContent, state.getContent());
+        Assertions.assertTrue( state.isDeleted());
     }
 }

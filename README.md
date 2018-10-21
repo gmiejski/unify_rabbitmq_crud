@@ -25,7 +25,7 @@
 * Questions
     * [x] Implement single channel aggregation with test
     * [x] Make sure data is consistent
-    * [ ] Join 3 CRUD topics
+    * [x] Join 3 CRUD topics
     * [ ] find kafka connect to RabbitMQ
     
     

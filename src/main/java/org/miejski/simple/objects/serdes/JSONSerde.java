@@ -3,7 +3,9 @@ package org.miejski.simple.objects.serdes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.miejski.Modifier;
 import org.miejski.questions.QuestionObjectMapper;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.simple.objects.ObjectState;
 import org.miejski.simple.objects.events.ObjectModifier;
 
@@ -13,7 +15,11 @@ import java.util.Map;
 
 public class JSONSerde {
 
-    public static Serde<ObjectModifier> objectModifierSerde(Class<? extends ObjectModifier> c) {
+    public static Serde<QuestionModifier> questionsModifierSerde(Class<? extends Modifier> c) {
+        return Serdes.serdeFrom(new GenericJSONSer<>(), new GenericJSONDe<>(c));
+    }
+
+    public static Serde<ObjectModifier> objectModifierSerde(Class<? extends Modifier> c) {
         return Serdes.serdeFrom(new GenericJSONSer<>(), new GenericJSONDe<>(c));
     }
 

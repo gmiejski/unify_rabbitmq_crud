@@ -14,9 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.events.QuestionCreated;
 import org.miejski.questions.events.QuestionDeleted;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.events.QuestionUpdated;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
+import org.miejski.simple.objects.serdes.JSONSerde;
 
 import java.time.ZonedDateTime;
 import java.util.Properties;
@@ -31,7 +33,11 @@ public class QuestionsTest {
     private static KeyValueStore<String, QuestionState> store;
     private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
 
+    private ConsumerRecordFactory<String, QuestionModifier> createRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.questionsModifierSerde(QuestionCreated.class).serializer());
+    private ConsumerRecordFactory<String, QuestionModifier> updateRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.questionsModifierSerde(QuestionUpdated.class).serializer());
+    private ConsumerRecordFactory<String, QuestionModifier> deleteRecordFactory = new ConsumerRecordFactory<>(new StringSerializer(), JSONSerde.questionsModifierSerde(QuestionDeleted.class).serializer());
     private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericFieldSerde.serde().serializer());
+
     private String questionRef = QuestionID.from(market, questionID);
 
 
@@ -80,6 +86,20 @@ public class QuestionsTest {
         Assertions.assertEquals(market, state.getMarket());
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(updateContent, state.getContent());
-        Assertions.assertTrue( state.isDeleted());
+        Assertions.assertTrue(state.isDeleted());
+    }
+
+    @Test
+    void shouldReadEachEventSeparately() {
+        testDriver.pipeInput(createRecordFactory.create(QuestionsTopology.CREATE_TOPIC, questionRef, new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        testDriver.pipeInput(updateRecordFactory.create(QuestionsTopology.UPDATE_TOPIC, questionRef, new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
+        testDriver.pipeInput(deleteRecordFactory.create(QuestionsTopology.DELETE_TOPIC, questionRef, new QuestionDeleted(market, questionID, ZonedDateTime.now())));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(updateContent, state.getContent());
+        Assertions.assertTrue(state.isDeleted());
     }
 }

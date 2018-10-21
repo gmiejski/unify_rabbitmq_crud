@@ -1,17 +1,17 @@
 package org.miejski.simple.objects.serdes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.miejski.Modifier;
 import org.miejski.questions.QuestionObjectMapper;
-import org.miejski.simple.objects.events.ObjectModifier;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class GenericJSONDe<T> implements org.apache.kafka.common.serialization.Deserializer<T> {
+public class GenericJSONDe<T extends Modifier<T>> implements org.apache.kafka.common.serialization.Deserializer<T> {
     private final ObjectMapper objectMapper;
     private Class c;
 
-    public GenericJSONDe(Class<? extends ObjectModifier> c) {
+    public GenericJSONDe(Class<T> c) {
         this.c = c;
         this.objectMapper = QuestionObjectMapper.build();
     }

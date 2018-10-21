@@ -10,12 +10,13 @@ import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.miejski.TopologyBuilder;
+import org.miejski.questions.QuestionObjectMapper;
 import org.miejski.simple.objects.events.ObjectCreation;
 import org.miejski.simple.objects.events.ObjectDelete;
 import org.miejski.simple.objects.events.ObjectModifier;
 import org.miejski.simple.objects.events.ObjectUpdate;
 import org.miejski.simple.objects.serdes.GenericField;
-import org.miejski.simple.objects.serdes.GenericSerde;
+import org.miejski.simple.objects.serdes.GenericFieldSerde;
 import org.miejski.simple.objects.serdes.JSONSerde;
 
 import java.util.HashMap;
@@ -26,9 +27,8 @@ public class ObjectsTopology implements TopologyBuilder {
     public static final String UPDATE_TOPIC = "update_topic";
     public static final String DELETE_TOPIC = "delete_topic";
     public static final String FINAL_TOPIC = "final_topic";
-    public static final String MODIFIERS_TOPIC = "modifiers_topic";
-    private static final String OBJECTS_TABLE_TOPIC = "something";
     public static final String OBJECTS_STORE_NAME = "objectsFinal";
+    private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
 
 
     @Override
@@ -44,7 +44,7 @@ public class ObjectsTopology implements TopologyBuilder {
         forwardToGenericTopic(streamsBuilder, UPDATE_TOPIC, ObjectUpdate.class);
         forwardToGenericTopic(streamsBuilder, DELETE_TOPIC, ObjectDelete.class);
 
-        KStream<String, GenericField> allGenerics = streamsBuilder.stream(FINAL_TOPIC, Consumed.with(Serdes.String(), GenericSerde.serde()));
+        KStream<String, GenericField> allGenerics = streamsBuilder.stream(FINAL_TOPIC, Consumed.with(Serdes.String(), GenericFieldSerde.serde()));
 
         ObjectsAggregator aggregator = new ObjectsAggregator(serializers);
 
@@ -56,6 +56,6 @@ public class ObjectsTopology implements TopologyBuilder {
 
     private void forwardToGenericTopic(StreamsBuilder streamsBuilder, String inputTopic, Class<? extends ObjectModifier> inputTopicClass) {
         streamsBuilder.stream(inputTopic, Consumed.with(Serdes.String(), JSONSerde.objectModifierSerde(inputTopicClass)))
-        .mapValues(GenericSerde::toGenericField).to(FINAL_TOPIC, Produced.with(Serdes.String(), GenericSerde.serde()));
+                .mapValues(genericFieldSerde::toGenericField).to(FINAL_TOPIC, Produced.with(Serdes.String(), GenericFieldSerde.serde()));
     }
 }

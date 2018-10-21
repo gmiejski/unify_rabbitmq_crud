@@ -6,8 +6,6 @@
 * https://kafka.apache.org/20/documentation/streams/tutorial
 * https://kafka.apache.org/20/documentation/streams/developer-guide/interactive-queries.html#querying-local-state-stores-for-an-app-instance
 
-
-
 * https://kafka.apache.org/20/documentation/streams/developer-guide/testing.html
 * https://stackoverflow.com/questions/46220663/kstream-ktable-join-writing-to-the-ktable-how-to-sync-the-join-with-the-ktable
 * http://bigdatums.net/2017/05/21/send-key-value-messages-kafka-console-producer/
@@ -25,8 +23,8 @@
     * [x] Make 3 channels and pass them to single one with proper serdes
     
 * Questions
-    * [ ] Implement single channel aggregation with test
-    * [ ] Make sure data is consistent
+    * [x] Implement single channel aggregation with test
+    * [x] Make sure data is consistent
     * [ ] Join 3 CRUD topics
     * [ ] find kafka connect to RabbitMQ
     
@@ -37,9 +35,15 @@
     * [ ] prepare data in RabbitMQ, persist expected state
     * [ ] start kafka connectors and kafka stream
     * [ ] Verify results
+
+* verify solution
+    * [ ] https://stackoverflow.com/users/7897191/michal-borowiecki
+
     
 * Prod performance test:
     * [ ] TODO fill this up
+    
+
      
 ## Things to check at the end:
 * [ ] make sure topics are partitioned by question id

@@ -5,7 +5,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.miejski.TopologyBuilder;
-import org.miejski.questions.KStreamStateLeftJoin;
+import org.miejski.questions.old.KStreamStateLeftJoin;
 
 import static java.util.Arrays.asList;
 import static org.apache.kafka.common.serialization.Serdes.Integer;

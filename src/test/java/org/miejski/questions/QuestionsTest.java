@@ -13,14 +13,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.events.QuestionCreated;
-import org.miejski.simple.objects.GenericObjectsSerde;
-import org.miejski.simple.objects.ObjectState;
-import org.miejski.simple.objects.ObjectsTopology;
-import org.miejski.simple.objects.events.ObjectCreation;
-import org.miejski.simple.objects.events.ObjectDelete;
-import org.miejski.simple.objects.events.ObjectUpdate;
 import org.miejski.simple.objects.serdes.GenericField;
-import org.miejski.simple.objects.serdes.GenericSerde;
+import org.miejski.simple.objects.serdes.GenericFieldSerde;
 
 import java.time.ZonedDateTime;
 import java.util.Properties;
@@ -32,8 +26,9 @@ public class QuestionsTest {
     private final String content = "some content";
     private static TopologyTestDriver testDriver;
     private static KeyValueStore<String, QuestionState> store;
+    private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
 
-    private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
+    private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericFieldSerde.serde().serializer());
     private String questionRef = QuestionID.from(market, questionID);
 
 
@@ -58,7 +53,7 @@ public class QuestionsTest {
 
     @Test
     void shouldProperlyUseGenericQuestionEventsInOneTopic() {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, QuestionsGenericSerde.build().toGenericField(new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
 
         testDriver.pipeInput(genericCreate);
 

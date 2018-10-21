@@ -10,22 +10,18 @@ import org.miejski.questions.QuestionObjectMapper;
 import java.io.IOException;
 import java.util.Map;
 
-public class GenericSerde { // TODO replace with GeneralJsonSerde
+public class GenericFieldSerde {
+    private ObjectMapper objectMapper; // TODO replace with GeneralJsonSerde
 
-    private Map<String, Class> serializers;
-
-    public GenericSerde(Map<String, Class> serializers) {
-        this.serializers = serializers;
+    public GenericFieldSerde(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     public GenericField toGenericField(Modifier objectModifier) {
         String serializer = objectModifier.getClass().getSimpleName();
 
-        if (!serializers.containsKey(serializer)) {
-            throw new RuntimeException("Unknown serializer: " + serializer);
-        }
         try {
-            return new GenericField(serializer, QuestionObjectMapper.build().writeValueAsString(objectModifier));
+            return new GenericField(serializer, this.objectMapper.writeValueAsString(objectModifier));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             throw new RuntimeException("Error marshalling data!!!!!!");
@@ -34,7 +30,7 @@ public class GenericSerde { // TODO replace with GeneralJsonSerde
 
 
     public static Serde<GenericField> serde() {
-        return Serdes.serdeFrom(new GenericJSONSer<>(), new GenericSerde.ObjectGenericDe());
+        return Serdes.serdeFrom(new GenericJSONSer<>(), new GenericFieldSerde.ObjectGenericDe());
     }
 
     static class ObjectGenericDe implements org.apache.kafka.common.serialization.Deserializer<GenericField> {

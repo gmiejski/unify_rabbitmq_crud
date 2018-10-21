@@ -13,12 +13,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.miejski.simple.objects.GenericObjectsSerde;
+import org.miejski.questions.QuestionObjectMapper;
 import org.miejski.simple.objects.ObjectState;
 import org.miejski.simple.objects.ObjectsTopology;
 import org.miejski.simple.objects.events.ObjectModifier;
 import org.miejski.simple.objects.serdes.GenericField;
-import org.miejski.simple.objects.serdes.GenericSerde;
+import org.miejski.simple.objects.serdes.GenericFieldSerde;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,8 +31,9 @@ public class ConsistencyTest {
     private final String objectID = "1";
     private static TopologyTestDriver testDriver;
     private static KeyValueStore<String, ObjectState> store;
+    private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
 
-    private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericSerde.serde().serializer());
+    private ConsumerRecordFactory<String, GenericField> genericObjectFactory = new ConsumerRecordFactory<>(new StringSerializer(), GenericFieldSerde.serde().serializer());
 
     @BeforeEach
     void setUp() {
@@ -46,6 +47,8 @@ public class ConsistencyTest {
 
         testDriver = new TopologyTestDriver(topology, props);
         store = testDriver.getKeyValueStore(ObjectsTopology.OBJECTS_STORE_NAME);
+
+
     }
 
     @AfterEach
@@ -62,7 +65,7 @@ public class ConsistencyTest {
         Map<String, ObjectState> expectedStates = generatedData.finalState();
         Collections.shuffle(events);
         events.stream()
-                .map(e -> genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, e.ID(), GenericObjectsSerde.build().toGenericField(e)))
+                .map(e -> genericObjectFactory.create(ObjectsTopology.FINAL_TOPIC, e.ID(), genericFieldSerde.toGenericField(e)))
                 .forEach(e -> testDriver.pipeInput(e));
 
 

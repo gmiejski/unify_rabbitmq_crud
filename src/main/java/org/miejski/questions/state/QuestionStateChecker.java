@@ -1,4 +1,4 @@
-package org.miejski.questions;
+package org.miejski.questions.state;
 
 import com.google.common.base.Strings;
 

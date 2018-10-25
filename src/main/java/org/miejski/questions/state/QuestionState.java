@@ -1,8 +1,9 @@
-package org.miejski.questions;
+package org.miejski.questions.state;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.miejski.questions.QuestionID;
 
 import java.time.Instant;
 import java.time.ZoneId;

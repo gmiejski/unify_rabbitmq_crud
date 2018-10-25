@@ -34,7 +34,7 @@ public class EventsProduceService {
 
             for (int i = 0; i < x; i++) {
                 int questionID = new Random().nextInt(maxObjectID);
-                ProducerRecord<Integer, QuestionCreated> producerRecord = new ProducerRecord<>(kafkaTopic, questionID, new QuestionCreated("us", questionID, RandomStringUtils.random(10), ZonedDateTime.now()));
+                ProducerRecord<Integer, QuestionCreated> producerRecord = new ProducerRecord<>(kafkaTopic, questionID, new QuestionCreated("us", questionID, RandomStringUtils.randomAscii(10), ZonedDateTime.now()));
                 producer.send(producerRecord);
             }
         } finally {

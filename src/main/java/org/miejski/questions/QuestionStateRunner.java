@@ -44,7 +44,7 @@ public class QuestionStateRunner {
     private static Thread printAllKeys(KafkaStreams streams) {
         return new Thread(() -> {
 
-            while (!streams.state().isRunning()) {
+            while (!streams.state().equals(KafkaStreams.State.RUNNING)) {
                 System.out.println("waiting for streams to start");
                 try {
                     Thread.sleep(1000);
@@ -52,6 +52,8 @@ public class QuestionStateRunner {
                     e.printStackTrace();
                 }
             }
+
+            System.out.println("Started - can read local state now.");
 
             while (true) {
                 ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore =

@@ -1,13 +1,12 @@
 package org.miejski.questions.consistency;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.miejski.questions.QuestionState;
+import org.miejski.questions.state.QuestionState;
 import org.miejski.questions.events.QuestionCreated;
 import org.miejski.questions.events.QuestionDeleted;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.events.QuestionUpdated;
 import org.miejski.simple.objects.consistecy.EventsPercentages;
-import org.miejski.simple.objects.events.ObjectDelete;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

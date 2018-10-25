@@ -1,5 +1,16 @@
 # unify_rabbitmq_crud
 
+
+## Setup
+
+* npm install -g wait-port
+* prepare files for Kafka:
+    * create 3 config files same way as they do this here:
+        * https://kafka.apache.org/quickstart
+        * bind ports to 9092, 9093 and 9094
+* KAFKA_PATH=xxx make setup-clusters
+
+
 ### kafka streams docs
 
 * https://kafka.apache.org/20/documentation/streams/quickstart

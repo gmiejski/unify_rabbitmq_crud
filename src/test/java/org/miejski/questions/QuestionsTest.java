@@ -16,6 +16,7 @@ import org.miejski.questions.events.QuestionCreated;
 import org.miejski.questions.events.QuestionDeleted;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.events.QuestionUpdated;
+import org.miejski.questions.state.QuestionState;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
 import org.miejski.simple.objects.serdes.JSONSerde;

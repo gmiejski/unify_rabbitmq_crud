@@ -1,8 +1,9 @@
-package org.miejski.questions;
+package org.miejski.questions.state;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.miejski.questions.QuestionObjectMapper;
 import org.miejski.simple.objects.serdes.GenericJSONSer;
 
 import java.io.IOException;

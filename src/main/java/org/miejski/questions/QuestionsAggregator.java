@@ -3,6 +3,7 @@ package org.miejski.questions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.streams.kstream.Aggregator;
 import org.miejski.questions.events.QuestionModifier;
+import org.miejski.questions.state.QuestionState;
 import org.miejski.simple.objects.serdes.GenericField;
 
 import java.io.IOException;

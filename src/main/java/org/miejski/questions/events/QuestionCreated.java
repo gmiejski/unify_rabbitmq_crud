@@ -1,9 +1,9 @@
 package org.miejski.questions.events;
 
 import org.miejski.questions.QuestionID;
-import org.miejski.questions.QuestionState;
+import org.miejski.questions.state.QuestionState;
 import org.miejski.exceptions.IdNotMatchingException;
-import org.miejski.questions.QuestionStateChecker;
+import org.miejski.questions.state.QuestionStateChecker;
 
 import java.time.ZonedDateTime;
 

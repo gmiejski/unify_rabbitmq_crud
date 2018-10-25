@@ -2,7 +2,7 @@ package org.miejski.questions.events;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.miejski.questions.QuestionState;
+import org.miejski.questions.state.QuestionState;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

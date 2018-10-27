@@ -21,4 +21,11 @@ dependencies {
     compile group: 'com.google.guava', name: 'guava', version: '23.0'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
 
+    compile group: 'com.rabbitmq', name: 'amqp-client', version: '5.5.0'
+
+    compile group: 'org.apache.kafka', name: 'connect-api', version: '2.0.0'
+    compile group: 'org.apache.kafka', name: 'connect-transforms', version: '2.0.0'
+    compile group: 'org.apache.kafka', name: 'connect-runtime', version: '2.0.0'
+    compile group: 'org.apache.kafka', name: 'connect-json', version: '2.0.0'
+
 }

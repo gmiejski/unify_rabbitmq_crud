@@ -41,6 +41,22 @@
 * https://docs.confluent.io/current/streams/architecture.html?_ga=2.265777096.696249922.1537392407-607151404.1536876543#state
 * https://docs.confluent.io/current/streams/kafka-streams-examples/docs/index.html?_ga=2.94790747.696249922.1537392407-607151404.1536876543
 
+### Kafka connect:
+
+* Install - https://docs.confluent.io/current/connect/managing/confluent-hub/client.html#confluent-hub-client
+* confluent-hub install confluentinc/kafka-connect-rabbitmq:latest
+    * this produced error with java :D, but finished
+    * install to default folder `/usr/local/share/confluent-hub-components`
+* fucking errors
+    * `ERROR Consumer io.confluent.connect.rabbitmq.ConnectConsumer@418f9617 (amq.ctag-4HDwpynLDdEGZN7L1vif1A) method handleDelivery for channel AMQChannel(amqp://guest@127.0.0.1:5672/,1) threw an exception for channel AMQChannel(amqp://guest@127.0.0.1:5672/,1) (com.rabbitmq.client.impl.ForgivingExceptionHandler:124)
+      java.lang.NullPointerException`
+*
+ ```~/programming/confluent-5.0.0/bin/connect-standalone connectors/worker2.properties connectors/create-questions.properties```
+ *
+
+### might be usefull
+* https://www.programcreek.com/java-api-examples/?code=jcustenborder/kafka-connect-rabbitmq/kafka-connect-rabbitmq-master/src/main/java/com/github/jcustenborder/kafka/connect/rabbitmq/MessageConverter.java#
+
 
 ## TODOs for MVP
 
@@ -54,6 +70,7 @@
     * [x] Join 3 CRUD topics
     * [ ] Connect RabbitMQ to kafka - https://docs.confluent.io/current/connect/kafka-connect-rabbitmq/rabbit_m_q_source_connector_config.html
         * [x] <s>run rabbitMQ on docker</s> | run rabbitmq locally
+        * [ ] create producer to rabbitMQ
         * [ ] use kafka-connect to create topic in kafka with events
         * [ ] make CRUD topics operate on original question events (those coming from legacy systems)
         * [ ] update map operations, to change original, to GenericField events

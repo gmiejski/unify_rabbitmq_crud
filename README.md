@@ -3,13 +3,28 @@
 
 ## Setup
 
-* npm install -g wait-port
+* `npm install -g wait-port`
 * prepare files for Kafka:
     * create 3 config files same way as they do this here:
         * https://kafka.apache.org/quickstart
-        * bind ports to 9092, 9093 and 9094
-* KAFKA_PATH=xxx make setup-clusters
+        * bind ports to `9092`, `9093` and `9094`
+* start Kafka        
+    * `KAFKA_PATH=${your_main_kafka_path} make setup-clusters`
+        * sometimes something goes wrong - just run this command second time, and you should see all connections successful
+    * `KAFKA_PATH=${your_main_kafka_path} make topics_setup`
+    * verify everything works correctly: `KAFKA_PATH=${your_main_kafka_path} make list_topics` 
+* start rabbitMQ:  
+    * install `brew update` && `brew install rabbitmq`
+    * in case of linking errors: 
+        * `sudo mkdir /usr/local/sbin`
+        * `sudo chown -R $(whoami) $(brew --prefix)/*`
+        * `brew link rabbitmq`
+    * `rabbitmq-server` and `http://localhost:15672/#/exchanges`
 
+
+## kill everything
+
+* `make down`
 
 ### kafka streams docs
 
@@ -37,9 +52,13 @@
     * [x] Implement single channel aggregation with test
     * [x] Make sure data is consistent
     * [x] Join 3 CRUD topics
-    * [ ] find kafka connect to RabbitMQ
-    
-    
+    * [ ] Connect RabbitMQ to kafka - https://docs.confluent.io/current/connect/kafka-connect-rabbitmq/rabbit_m_q_source_connector_config.html
+        * [x] <s>run rabbitMQ on docker</s> | run rabbitmq locally
+        * [ ] use kafka-connect to create topic in kafka with events
+        * [ ] make CRUD topics operate on original question events (those coming from legacy systems)
+        * [ ] update map operations, to change original, to GenericField events
+        * [ ] write integration test
+ 
 * Prod consistency test:
     * [ ] prepare rabbitMQ to be run via docker
     * [ ] prepare kafka to be run in docker
@@ -49,11 +68,9 @@
 
 * verify solution
     * [ ] https://stackoverflow.com/users/7897191/michal-borowiecki
-
     
 * Prod performance test:
     * [ ] TODO fill this up
-    
 
      
 ## Things to check at the end:

@@ -52,7 +52,9 @@
       java.lang.NullPointerException`
 *
  ```~/programming/confluent-5.0.0/bin/connect-standalone connectors/worker2.properties connectors/create-questions.properties```
- *
+* transforms must go into `connector.properties`:
+    * `bin/connect-standalone worker.properties connector1.properties [connector2.properties connector3.properties ...]`
+* 
 
 ### might be usefull
 * https://www.programcreek.com/java-api-examples/?code=jcustenborder/kafka-connect-rabbitmq/kafka-connect-rabbitmq-master/src/main/java/com/github/jcustenborder/kafka/connect/rabbitmq/MessageConverter.java#

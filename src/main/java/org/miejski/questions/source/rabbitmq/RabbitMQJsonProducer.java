@@ -51,32 +51,9 @@ public class RabbitMQJsonProducer implements Consumer<Object>, Closeable {
     public void accept(Object o) {
         try {
             String message = this.objectMapper.writeValueAsString(o);
-            AMQP.BasicProperties props = new AMQP.BasicProperties.Builder().deliveryMode(1).build();
-            Map<String, Object> a = new HashMap<>();
-            a.put("asdasddasads", "adssdsadads");
 
-            AMQP.BasicProperties.Builder headers = MessageProperties.MINIMAL_PERSISTENT_BASIC.builder().headers(a);
-            headers = headers.appId("dusssssspa2");
-            headers = headers.clusterId("");
-
-            AMQP.BasicProperties b = new AMQP.BasicProperties
-                    ("text/plain"
-                            , null
-                            , a
-                            , 1
-                            , 0
-                            , null
-                            , null
-                            , null
-                            , null
-                            , new Date()
-                            , null
-                            , "guest"
-                            , "app id1"
-                            , "cluster 12"
-                    );
-
-            channel.basicPublish("", QUESTION_CREATED_QUEUE, b, message.getBytes());
+            // TODO when you set priority to 0, everything fucks up
+            channel.basicPublish("", QUESTION_CREATED_QUEUE, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -24,3 +24,9 @@ list_topics:
 
 listen_to_state:
 	${KAFKA_PATH}/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092  --property print.key=true --key-deserializer org.apache.kafka.common.serialization.IntegerDeserializer  --from-beginning --topic question_state_topic
+
+start_rabbit:
+	rabbitmq-server &
+
+kill_rabbit:
+	ps -ef | grep 'rabbitmq' | grep -v grep | awk '{print $$2}' | xargs  kill -9

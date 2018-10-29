@@ -1,12 +1,12 @@
 package org.miejski.questions.source;
 
 import org.miejski.questions.QuestionObjectMapper;
-import org.miejski.questions.source.QuestionCreated;
+import org.miejski.questions.source.create.QuestionCreated;
+import org.miejski.questions.source.create.QuestionCreatedPayload;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
 
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 

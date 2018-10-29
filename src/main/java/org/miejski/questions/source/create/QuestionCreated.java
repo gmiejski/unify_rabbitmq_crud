@@ -1,4 +1,4 @@
-package org.miejski.questions.source;
+package org.miejski.questions.source.create;
 
 public class QuestionCreated {
 

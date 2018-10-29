@@ -1,6 +1,8 @@
 package org.miejski.questions.source;
 
 import org.junit.jupiter.api.Test;
+import org.miejski.questions.source.create.QuestionCreated;
+import org.miejski.questions.source.create.QuestionCreatedPayload;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;

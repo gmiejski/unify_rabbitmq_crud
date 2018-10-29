@@ -7,14 +7,13 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.miejski.questions.source.QuestionCreateProducer;
-import org.miejski.questions.source.QuestionCreated;
+import org.miejski.questions.source.create.QuestionCreateProducer;
+import org.miejski.questions.source.create.QuestionCreated;
 import org.miejski.questions.source.RandomQuestionIDProvider;
 import org.miejski.questions.source.StartRabbitMQProducer;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
 import org.miejski.questions.state.QuestionState;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;

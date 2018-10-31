@@ -1,8 +1,8 @@
 package org.miejski.questions.source;
 
 import org.junit.jupiter.api.Test;
-import org.miejski.questions.source.create.QuestionCreated;
-import org.miejski.questions.source.create.QuestionCreatedPayload;
+import org.miejski.questions.source.create.SourceQuestionCreated;
+import org.miejski.questions.source.create.SourceQuestionCreatedPayload;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -21,7 +21,7 @@ class GeneratingBusProducerTest {
     private final int questionID = 1;
     private final String content = "content";
     private final ZonedDateTime now = ZonedDateTime.now();
-    private final QuestionCreated us = new QuestionCreated("us", new QuestionCreatedPayload(questionID, content, now));
+    private final SourceQuestionCreated us = new SourceQuestionCreated("us", new SourceQuestionCreatedPayload(questionID, content, now));
 
     class LastSeenCache implements Consumer<Object> {
         private AtomicReference<Object> obj = new AtomicReference<>();
@@ -39,8 +39,8 @@ class GeneratingBusProducerTest {
     @Test
     void eventsAreProduced() throws InterruptedException, ExecutionException, TimeoutException {
         LastSeenCache consumer = new LastSeenCache();
-        SourceEventProducer<QuestionCreated> questionCreatedProducer = () -> us;
-        GeneratingBusProducer<QuestionCreated> producer = new GeneratingBusProducer<>("us", questionCreatedProducer, consumer);
+        SourceEventProducer<SourceQuestionCreated> questionCreatedProducer = () -> us;
+        GeneratingBusProducer<SourceQuestionCreated> producer = new GeneratingBusProducer<>("us", questionCreatedProducer, consumer);
         Future<Boolean> finished = producer.start();
 
         assertTimeout(Duration.ofSeconds(1), () -> {

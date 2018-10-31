@@ -20,9 +20,9 @@ import java.util.function.Consumer;
 
 public class RabbitMQJsonProducer implements Consumer<Object>, Closeable {
 
-    public final static String QUESTION_CREATED_QUEUE = "QuestionCreated";
-    public final static String QUESTION_UPDATED_QUEUE = "QuestionUpdated";
-    public final static String QUESTION_DELETED_QUEUE = "QuestionDeleted";
+    public final static String QUESTION_CREATED_QUEUE = "SourceQuestionCreated";
+    public final static String QUESTION_UPDATED_QUEUE = "SourceQuestionUpdated";
+    public final static String QUESTION_DELETED_QUEUE = "SourceQuestionDeleted";
 
     private final ConnectionFactory connectionFactory;
     private final ObjectMapper objectMapper;

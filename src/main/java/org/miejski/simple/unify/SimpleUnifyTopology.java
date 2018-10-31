@@ -22,10 +22,8 @@ public class SimpleUnifyTopology implements TopologyBuilder {
     private static final String NUMBERS_TABLE_TOPIC = "something";
     static final String NUMBERS_STORE_NAME = "numbersFinal";
 
-
     @Override
-    public Topology buildTopology() {
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
+    public Topology buildTopology(StreamsBuilder streamsBuilder) {
         KStream<String, Integer> inputStream = streamsBuilder.stream(asList(NEW_TOPIC, UPDATE_TOPIC, DELETE_TOPIC), with(String(), Integer()));
 
         streamsBuilder
@@ -39,5 +37,6 @@ public class SimpleUnifyTopology implements TopologyBuilder {
         transformCreateStream.to(NUMBERS_TABLE_TOPIC);
 
         return streamsBuilder.build();
+
     }
 }

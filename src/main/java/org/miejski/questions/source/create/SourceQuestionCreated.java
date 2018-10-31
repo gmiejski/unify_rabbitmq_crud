@@ -1,16 +1,20 @@
 package org.miejski.questions.source.create;
 
-import org.miejski.Modifier;
 import org.miejski.exceptions.IdNotMatchingException;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.questions.state.QuestionStateChecker;
 
-public class QuestionCreated implements Modifier<QuestionState> {
+public class SourceQuestionCreated implements QuestionModifier {
 
-    private final String market;
-    private final QuestionCreatedPayload payload;
+    private String market;
+    private SourceQuestionCreatedPayload payload;
 
-    public QuestionCreated(String market, QuestionCreatedPayload payload) {
+
+    public SourceQuestionCreated() {
+    }
+
+    public SourceQuestionCreated(String market, SourceQuestionCreatedPayload payload) {
         this.market = market;
         this.payload = payload;
     }
@@ -19,7 +23,7 @@ public class QuestionCreated implements Modifier<QuestionState> {
         return market;
     }
 
-    public QuestionCreatedPayload getPayload() {
+    public SourceQuestionCreatedPayload getPayload() {
         return payload;
     }
 

@@ -44,5 +44,19 @@ public class QuestionUpdated implements QuestionModifier {
         return QuestionID.from(this.market, this.questionID);
     }
 
+    public String getMarket() {
+        return market;
+    }
 
+    public int getQuestionID() {
+        return questionID;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public ZonedDateTime getUpdateDate() {
+        return updateDate;
+    }
 }

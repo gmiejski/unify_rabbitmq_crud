@@ -2,13 +2,16 @@ package org.miejski.questions.source.delete;
 
 import java.time.ZonedDateTime;
 
-public class QuestionDeletedPayload {
+public class SourceQuestionDeletedPayload {
 
-    private final int questionID;
-    private final String content;
-    private final ZonedDateTime deletedAt;
+    private  int questionID;
+    private  String content;
+    private  ZonedDateTime deletedAt;
 
-    public QuestionDeletedPayload(int questionID, String content, ZonedDateTime deletedAt) {
+    public SourceQuestionDeletedPayload() {
+    }
+
+    public SourceQuestionDeletedPayload(int questionID, String content, ZonedDateTime deletedAt) {
         this.questionID = questionID;
         this.content = content;
         this.deletedAt = deletedAt;

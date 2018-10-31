@@ -1,16 +1,19 @@
 package org.miejski.questions.source.delete;
 
-import org.miejski.Modifier;
 import org.miejski.exceptions.IdNotMatchingException;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.questions.state.QuestionStateChecker;
 
-public class QuestionDeleted implements Modifier<QuestionState> {
+public class SourceQuestionDeleted implements QuestionModifier {
 
-    private final String market;
-    private final QuestionDeletedPayload payload;
+    private  String market;
+    private  SourceQuestionDeletedPayload payload;
 
-    public QuestionDeleted(String market, QuestionDeletedPayload payload) {
+    public SourceQuestionDeleted() {
+    }
+
+    public SourceQuestionDeleted(String market, SourceQuestionDeletedPayload payload) {
         this.market = market;
         this.payload = payload;
     }
@@ -19,7 +22,7 @@ public class QuestionDeleted implements Modifier<QuestionState> {
         return market;
     }
 
-    public QuestionDeletedPayload getPayload() {
+    public SourceQuestionDeletedPayload getPayload() {
         return payload;
     }
 

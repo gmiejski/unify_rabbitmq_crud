@@ -44,6 +44,6 @@ public class EventsProduceService {
     }
 
     public static void main(String[] args) {
-        new EventsProduceService(QuestionsTopology.CREATE_TOPIC, 10, 100).createSingle(100);
+        new EventsProduceService(QuestionsStateTopology.CREATE_TOPIC, 10, 100).createSingle(100);
     }
 }

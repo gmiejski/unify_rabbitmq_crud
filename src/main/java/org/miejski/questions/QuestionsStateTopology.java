@@ -22,7 +22,7 @@ import org.miejski.simple.objects.serdes.JSONSerde;
 
 import java.util.HashMap;
 
-public class QuestionsTopology implements TopologyBuilder {
+public class QuestionsStateTopology implements TopologyBuilder {
 
     public static final String CREATE_TOPIC = "question_create_topic";
     public static final String UPDATE_TOPIC = "question_update_topic";
@@ -33,8 +33,7 @@ public class QuestionsTopology implements TopologyBuilder {
 
 
     @Override
-    public Topology buildTopology() {
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
+    public Topology buildTopology(StreamsBuilder streamsBuilder) {
 
         HashMap<String, Class> serializers = new HashMap<>();
         serializers.put(QuestionCreated.class.getSimpleName(), QuestionCreated.class);

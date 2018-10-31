@@ -2,15 +2,19 @@ package org.miejski.questions.source.update;
 
 import org.miejski.Modifier;
 import org.miejski.exceptions.IdNotMatchingException;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.questions.state.QuestionStateChecker;
 
-public class QuestionUpdated implements Modifier<QuestionState> {
+public class SourceQuestionUpdated implements QuestionModifier {
 
-    private final String market;
-    private final QuestionUpdatedPayload payload;
+    private String market;
+    private SourceQuestionUpdatedPayload payload;
 
-    public QuestionUpdated(String market, QuestionUpdatedPayload payload) {
+    public SourceQuestionUpdated() {
+    }
+
+    public SourceQuestionUpdated(String market, SourceQuestionUpdatedPayload payload) {
         this.market = market;
         this.payload = payload;
     }
@@ -19,7 +23,7 @@ public class QuestionUpdated implements Modifier<QuestionState> {
         return market;
     }
 
-    public QuestionUpdatedPayload getPayload() {
+    public SourceQuestionUpdatedPayload getPayload() {
         return payload;
     }
 
@@ -38,9 +42,9 @@ public class QuestionUpdated implements Modifier<QuestionState> {
 
     }
 
-
     @Override
     public String ID() {
         return String.valueOf(payload.getQuestionID());
     }
+
 }

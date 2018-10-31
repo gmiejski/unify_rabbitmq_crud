@@ -2,13 +2,16 @@ package org.miejski.questions.source.create;
 
 import java.time.ZonedDateTime;
 
-public class QuestionCreatedPayload {
+public class SourceQuestionCreatedPayload {
 
-    private final int questionID;
-    private final String content;
-    private final ZonedDateTime createDate;
+    private int questionID;
+    private String content;
+    private ZonedDateTime createDate;
 
-    public QuestionCreatedPayload(int questionID, String content, ZonedDateTime createDate) {
+    public SourceQuestionCreatedPayload() {
+    }
+
+    public SourceQuestionCreatedPayload(int questionID, String content, ZonedDateTime createDate) {
         this.questionID = questionID;
         this.content = content;
         this.createDate = createDate;

@@ -10,16 +10,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.miejski.Modifier;
+import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.source.AllAtOnceBusProducer;
 import org.miejski.questions.source.BusProducer;
 import org.miejski.questions.source.MultiSourceEventProducer;
 import org.miejski.questions.source.RandomQuestionIDProvider;
-import org.miejski.questions.source.create.QuestionCreateProducer;
-import org.miejski.questions.source.create.QuestionCreated;
-import org.miejski.questions.source.delete.QuestionDeleted;
+import org.miejski.questions.source.create.SourceQuestionCreateProducer;
+import org.miejski.questions.source.create.SourceQuestionCreated;
+import org.miejski.questions.source.delete.SourceQuestionDeleted;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
-import org.miejski.questions.source.update.QuestionUpdated;
-import org.miejski.questions.source.update.QuestionUpdatedProducer;
+import org.miejski.questions.source.update.SourceQuestionUpdated;
+import org.miejski.questions.source.update.SourceQuestionUpdatedProducer;
 import org.miejski.questions.state.QuestionState;
 
 import java.time.Duration;
@@ -59,7 +60,7 @@ public class FullConsistencyTest {
         maxQuestionID = 1000;
         int eventsPerTypeCount = 1000;
 
-        final KafkaStreams streams = new KafkaStreams(new QuestionsTopology().buildTopology(), getLocalProperties());
+        final KafkaStreams streams = new KafkaStreams(new QuestionsStateTopology().buildTopology(), getLocalProperties());
 
         QuestionStateRunner.addShutdownHook(streams, latch);
         // TODO prepare queues
@@ -77,7 +78,7 @@ public class FullConsistencyTest {
         }
 
         ReadOnlyKeyValueStore<Integer, QuestionState> questionsStore =
-                streams.store(QuestionsTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+                streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
 
         // then
         Assertions.assertTimeout(Duration.ofSeconds(60), () -> assertStateMatches(producersWithState.getStates(), questionsStore));
@@ -86,20 +87,20 @@ public class FullConsistencyTest {
     private ProducersWithState producersAndFinalState(int maxQuestionID, int eachEventTypeCount) {
         RandomQuestionIDProvider idProvider = new RandomQuestionIDProvider(maxQuestionID);
 
-        MultiSourceEventProducer<QuestionCreated> questionCreateProducer = new MultiSourceEventProducer<>(new QuestionCreateProducer(market, idProvider));
-        MultiSourceEventProducer<QuestionUpdated> questionUpdateProducer = new MultiSourceEventProducer<>(new QuestionUpdatedProducer(market, idProvider));
+        MultiSourceEventProducer<SourceQuestionCreated> questionCreateProducer = new MultiSourceEventProducer<>(new SourceQuestionCreateProducer(market, idProvider));
+        MultiSourceEventProducer<SourceQuestionUpdated> questionUpdateProducer = new MultiSourceEventProducer<>(new SourceQuestionUpdatedProducer(market, idProvider));
 
-        List<QuestionCreated> createEvents = questionCreateProducer.create(eachEventTypeCount); // TODO unify timestamps of create
-        List<QuestionUpdated> updateEvents = questionUpdateProducer.create(eachEventTypeCount);
+        List<SourceQuestionCreated> createEvents = questionCreateProducer.create(eachEventTypeCount); // TODO unify timestamps of create
+        List<SourceQuestionUpdated> updateEvents = questionUpdateProducer.create(eachEventTypeCount);
 
         List<BusProducer> busProducers = generateProducers(createEvents, updateEvents);
 
         return new ProducersWithState(busProducers, expectedState(createEvents, updateEvents));
     }
 
-    private List<QuestionState> expectedState(List<QuestionCreated> createEvents, List<QuestionUpdated> updateEvents) {
+    private List<QuestionState> expectedState(List<SourceQuestionCreated> createEvents, List<SourceQuestionUpdated> updateEvents) {
 
-        Stream<Map.Entry<String, List<Modifier<QuestionState>>>> stream = Streams.concat(createEvents.stream(), updateEvents.stream())
+        Stream<Map.Entry<String, List<QuestionModifier>>> stream = Streams.concat(createEvents.stream(), updateEvents.stream())
                 .collect(groupingBy(x -> x.ID()))
                 .entrySet().stream();
 
@@ -110,11 +111,11 @@ public class FullConsistencyTest {
         return collect;
     }
 
-    private List<BusProducer> generateProducers(List<QuestionCreated> createEvents, List<QuestionUpdated> updateEvents) {
+    private List<BusProducer> generateProducers(List<SourceQuestionCreated> createEvents, List<SourceQuestionUpdated> updateEvents) {
 
-        EventStoreConsumer<QuestionCreated> createdStore = new EventStoreConsumer<>();
-        EventStoreConsumer<QuestionUpdated> updatedStore = new EventStoreConsumer<>();
-        EventStoreConsumer<QuestionDeleted> deletedStore = new EventStoreConsumer<>();
+        EventStoreConsumer<SourceQuestionCreated> createdStore = new EventStoreConsumer<>();
+        EventStoreConsumer<SourceQuestionUpdated> updatedStore = new EventStoreConsumer<>();
+        EventStoreConsumer<SourceQuestionDeleted> deletedStore = new EventStoreConsumer<>();
 
         RabbitMQJsonProducer createRabbitConsumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE);
         createRabbitConsumer.connect();
@@ -123,8 +124,8 @@ public class FullConsistencyTest {
         updatedRabbitConsumer.connect();
         updatedRabbitConsumer.setup();
 
-        AllAtOnceBusProducer<QuestionCreated> created = new AllAtOnceBusProducer<>(market, createEvents, new DuplicateConsumer<>(Arrays.asList(createRabbitConsumer, createdStore)));
-        AllAtOnceBusProducer<QuestionUpdated> updated = new AllAtOnceBusProducer<>(market, updateEvents, new DuplicateConsumer<>(Arrays.asList(updatedRabbitConsumer, updatedStore)));
+        AllAtOnceBusProducer<SourceQuestionCreated> created = new AllAtOnceBusProducer<>(market, createEvents, new DuplicateConsumer<>(Arrays.asList(createRabbitConsumer, createdStore)));
+        AllAtOnceBusProducer<SourceQuestionUpdated> updated = new AllAtOnceBusProducer<>(market, updateEvents, new DuplicateConsumer<>(Arrays.asList(updatedRabbitConsumer, updatedStore)));
 
         return Arrays.asList(created, updated);
     }
@@ -138,7 +139,11 @@ public class FullConsistencyTest {
 
     private void assertStateMatches(List<QuestionState> states, ReadOnlyKeyValueStore<Integer, QuestionState> store) {
         while (true) {
-
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -44,7 +44,7 @@ public class QuestionsTest {
 
     @BeforeEach
     void setUp() {
-        Topology topology = new QuestionsTopology().buildTopology();
+        Topology topology = new QuestionsStateTopology().buildTopology();
 
         Properties props = new Properties();
         props.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getCanonicalName());
@@ -53,7 +53,7 @@ public class QuestionsTest {
         props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName());
 
         testDriver = new TopologyTestDriver(topology, props);
-        store = testDriver.getKeyValueStore(QuestionsTopology.QUESTIONS_STORE_NAME);
+        store = testDriver.getKeyValueStore(QuestionsStateTopology.QUESTIONS_STORE_NAME);
     }
 
     @AfterEach
@@ -63,7 +63,8 @@ public class QuestionsTest {
 
     @Test
     void shouldProperlyUseGenericQuestionEventsInOneTopic() {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        QuestionCreated objectModifier = new QuestionCreated(market, questionID, content, ZonedDateTime.now());
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(objectModifier));
 
         testDriver.pipeInput(genericCreate);
 
@@ -72,7 +73,7 @@ public class QuestionsTest {
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(content, state.getContent());
 
-        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
         testDriver.pipeInput(genericUpdate);
 
         state = store.get(QuestionID.from(market, questionID));
@@ -80,7 +81,7 @@ public class QuestionsTest {
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(updateContent, state.getContent());
 
-        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionDeleted(market, questionID, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionDeleted(market, questionID, ZonedDateTime.now())));
         testDriver.pipeInput(genericDelete);
 
         state = store.get(QuestionID.from(market, questionID));
@@ -92,9 +93,9 @@ public class QuestionsTest {
 
     @Test
     void shouldReadEachEventSeparately() {
-        testDriver.pipeInput(createRecordFactory.create(QuestionsTopology.CREATE_TOPIC, questionRef, new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
-        testDriver.pipeInput(updateRecordFactory.create(QuestionsTopology.UPDATE_TOPIC, questionRef, new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
-        testDriver.pipeInput(deleteRecordFactory.create(QuestionsTopology.DELETE_TOPIC, questionRef, new QuestionDeleted(market, questionID, ZonedDateTime.now())));
+        testDriver.pipeInput(createRecordFactory.create(QuestionsStateTopology.CREATE_TOPIC, questionRef, new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        testDriver.pipeInput(updateRecordFactory.create(QuestionsStateTopology.UPDATE_TOPIC, questionRef, new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
+        testDriver.pipeInput(deleteRecordFactory.create(QuestionsStateTopology.DELETE_TOPIC, questionRef, new QuestionDeleted(market, questionID, ZonedDateTime.now())));
 
         QuestionState state = store.get(QuestionID.from(market, questionID));
 

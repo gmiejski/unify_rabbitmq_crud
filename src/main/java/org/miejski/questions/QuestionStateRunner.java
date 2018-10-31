@@ -7,8 +7,8 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.miejski.questions.source.create.QuestionCreateProducer;
-import org.miejski.questions.source.create.QuestionCreated;
+import org.miejski.questions.source.create.SourceQuestionCreateProducer;
+import org.miejski.questions.source.create.SourceQuestionCreated;
 import org.miejski.questions.source.RandomQuestionIDProvider;
 import org.miejski.questions.source.GeneratingBusProducer;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
@@ -33,7 +33,7 @@ public class QuestionStateRunner {
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "question-states");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092,localhost:9093,localhost:9094");
-        final Topology topology = new QuestionsTopology().buildTopology();
+        final Topology topology = new QuestionsStateTopology().buildTopology();
 
         final KafkaStreams streams = new KafkaStreams(topology, props);
         final CountDownLatch latch = new CountDownLatch(1);
@@ -65,8 +65,8 @@ public class QuestionStateRunner {
     }
 
     private static List<GeneratingBusProducer> buildProducers(RandomQuestionIDProvider provider) {
-        QuestionCreateProducer createProducer = new QuestionCreateProducer(market, provider);
-        GeneratingBusProducer<QuestionCreated> generatingBusProducer = new GeneratingBusProducer<>(market, createProducer, RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE));
+        SourceQuestionCreateProducer createProducer = new SourceQuestionCreateProducer(market, provider);
+        GeneratingBusProducer<SourceQuestionCreated> generatingBusProducer = new GeneratingBusProducer<>(market, createProducer, RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE));
         return Arrays.asList(generatingBusProducer);
     }
 
@@ -96,7 +96,7 @@ public class QuestionStateRunner {
 
             while (true) {
                 ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore =
-                        streams.store(QuestionsTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+                        streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
 
                 KeyValueIterator<Integer, QuestionState> range = keyValueStore.all();
                 while (range.hasNext()) {

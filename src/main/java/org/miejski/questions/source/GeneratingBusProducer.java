@@ -1,8 +1,8 @@
 package org.miejski.questions.source;
 
 import org.miejski.questions.QuestionObjectMapper;
-import org.miejski.questions.source.create.QuestionCreated;
-import org.miejski.questions.source.create.QuestionCreatedPayload;
+import org.miejski.questions.source.create.SourceQuestionCreated;
+import org.miejski.questions.source.create.SourceQuestionCreatedPayload;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
 
 import java.time.ZonedDateTime;
@@ -59,7 +59,7 @@ public class GeneratingBusProducer<T> implements BusProducer {
         RabbitMQJsonProducer consumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE);
         consumer.connect();
         consumer.setup();
-        GeneratingBusProducer<QuestionCreated> generatingBusProducer = new GeneratingBusProducer<>("us", () -> new QuestionCreated("us", new QuestionCreatedPayload(1, "sad", ZonedDateTime.now())), consumer);
+        GeneratingBusProducer<SourceQuestionCreated> generatingBusProducer = new GeneratingBusProducer<>("us", () -> new SourceQuestionCreated("us", new SourceQuestionCreatedPayload(1, "sad", ZonedDateTime.now())), consumer);
         generatingBusProducer.start();
         while (true) {
             try {

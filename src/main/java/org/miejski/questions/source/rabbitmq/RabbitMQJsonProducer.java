@@ -21,21 +21,26 @@ import java.util.function.Consumer;
 public class RabbitMQJsonProducer implements Consumer<Object>, Closeable {
 
     public final static String QUESTION_CREATED_QUEUE = "QuestionCreated";
+    public final static String QUESTION_UPDATED_QUEUE = "QuestionUpdated";
+    public final static String QUESTION_DELETED_QUEUE = "QuestionDeleted";
+
     private final ConnectionFactory connectionFactory;
     private final ObjectMapper objectMapper;
+    private String queueName;
     private Connection connection;
     private Channel channel;
 
-    public RabbitMQJsonProducer(ConnectionFactory connectionFactory, ObjectMapper objectMapper) {
+    public RabbitMQJsonProducer(ConnectionFactory connectionFactory, ObjectMapper objectMapper, String queueName) {
         this.connectionFactory = connectionFactory;
         this.objectMapper = objectMapper;
+        this.queueName = queueName;
     }
 
-    public static RabbitMQJsonProducer localRabbitMQProducer(ObjectMapper objectMapper) {
+    public static RabbitMQJsonProducer localRabbitMQProducer(ObjectMapper objectMapper, String queueName) { // TODO move queue name to accept param?
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         factory.setPort(5672);
-        return new RabbitMQJsonProducer(factory, objectMapper);
+        return new RabbitMQJsonProducer(factory, objectMapper, queueName);
     }
 
     public void connect() {
@@ -53,7 +58,7 @@ public class RabbitMQJsonProducer implements Consumer<Object>, Closeable {
             String message = this.objectMapper.writeValueAsString(o);
 
             // TODO when you set priority to 0, everything fucks up
-            channel.basicPublish("", QUESTION_CREATED_QUEUE, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
+            channel.basicPublish("", this.queueName, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,8 +66,7 @@ public class RabbitMQJsonProducer implements Consumer<Object>, Closeable {
 
     public void setup() {
         try {
-            channel.queueDeclare(QUESTION_CREATED_QUEUE, false, false, false, null);
-
+            channel.queueDeclare(this.queueName, false, false, false, null);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-public class StartRabbitMQProducer<T> {
+public class GeneratingBusProducer<T> implements BusProducer {
 
     private final String market;
     private final SourceEventProducer<T> producer;
@@ -19,13 +19,15 @@ public class StartRabbitMQProducer<T> {
     private Thread runningThread;
     private CompletableFuture<Boolean> completed;
 
-    public StartRabbitMQProducer(String market, SourceEventProducer<T> producer, Consumer<Object> consumer) {
+    public GeneratingBusProducer(String market, SourceEventProducer<T> producer, Consumer<Object> consumer) {
         this.market = market;
         this.producer = producer;
         this.consumer = consumer;
     }
 
     public CompletableFuture<Boolean> start() {
+        completed = new CompletableFuture<>(); // TODO - make thread safe :D
+
         runningThread = new Thread(() -> {
             try {
                 while (isRunning.get()) {
@@ -35,15 +37,15 @@ public class StartRabbitMQProducer<T> {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            completed.complete(true);
         });
         runningThread.start();
-        completed = new CompletableFuture<>();
         return completed;
     }
 
     public void stop() {
         this.isRunning.set(false);
-        while(runningThread.isAlive()) {
+        while (runningThread.isAlive()) {
             try {
                 Thread.sleep(20);
             } catch (InterruptedException e) {
@@ -54,11 +56,11 @@ public class StartRabbitMQProducer<T> {
     }
 
     public static void main(String[] args) {
-        RabbitMQJsonProducer consumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build());
+        RabbitMQJsonProducer consumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE);
         consumer.connect();
         consumer.setup();
-        StartRabbitMQProducer<QuestionCreated> startRabbitMQProducer = new StartRabbitMQProducer<>("us", () -> new QuestionCreated("us", new QuestionCreatedPayload(1, "sad", ZonedDateTime.now())), consumer);
-        startRabbitMQProducer.start();
+        GeneratingBusProducer<QuestionCreated> generatingBusProducer = new GeneratingBusProducer<>("us", () -> new QuestionCreated("us", new QuestionCreatedPayload(1, "sad", ZonedDateTime.now())), consumer);
+        generatingBusProducer.start();
         while (true) {
             try {
                 Thread.sleep(1000);

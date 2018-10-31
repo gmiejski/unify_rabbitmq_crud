@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 
-class StartRabbitMQProducerTest {
+class GeneratingBusProducerTest {
 
 
     private final int questionID = 1;
@@ -40,7 +40,7 @@ class StartRabbitMQProducerTest {
     void eventsAreProduced() throws InterruptedException, ExecutionException, TimeoutException {
         LastSeenCache consumer = new LastSeenCache();
         SourceEventProducer<QuestionCreated> questionCreatedProducer = () -> us;
-        StartRabbitMQProducer<QuestionCreated> producer = new StartRabbitMQProducer<>("us", questionCreatedProducer, consumer);
+        GeneratingBusProducer<QuestionCreated> producer = new GeneratingBusProducer<>("us", questionCreatedProducer, consumer);
         Future<Boolean> finished = producer.start();
 
         assertTimeout(Duration.ofSeconds(1), () -> {

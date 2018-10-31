@@ -10,7 +10,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.miejski.questions.source.create.QuestionCreateProducer;
 import org.miejski.questions.source.create.QuestionCreated;
 import org.miejski.questions.source.RandomQuestionIDProvider;
-import org.miejski.questions.source.StartRabbitMQProducer;
+import org.miejski.questions.source.GeneratingBusProducer;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
 import org.miejski.questions.state.QuestionState;
 
@@ -38,8 +38,8 @@ public class QuestionStateRunner {
         final KafkaStreams streams = new KafkaStreams(topology, props);
         final CountDownLatch latch = new CountDownLatch(1);
 
-        List<StartRabbitMQProducer> producers = buildProducers(new RandomQuestionIDProvider(10000));
-        List<Future> allRunning = producers.stream().map(StartRabbitMQProducer::start).collect(Collectors.toList());
+        List<GeneratingBusProducer> producers = buildProducers(new RandomQuestionIDProvider(10000));
+        List<Future> allRunning = producers.stream().map(GeneratingBusProducer::start).collect(Collectors.toList());
 
         printAllKeys(streams).start();
         addShutdownHook(streams, latch);
@@ -64,13 +64,13 @@ public class QuestionStateRunner {
         }
     }
 
-    private static List<StartRabbitMQProducer> buildProducers(RandomQuestionIDProvider provider) {
+    private static List<GeneratingBusProducer> buildProducers(RandomQuestionIDProvider provider) {
         QuestionCreateProducer createProducer = new QuestionCreateProducer(market, provider);
-        StartRabbitMQProducer<QuestionCreated> startRabbitMQProducer = new StartRabbitMQProducer<>(market, createProducer, RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build()));
-        return Arrays.asList(startRabbitMQProducer);
+        GeneratingBusProducer<QuestionCreated> generatingBusProducer = new GeneratingBusProducer<>(market, createProducer, RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE));
+        return Arrays.asList(generatingBusProducer);
     }
 
-    private static void addShutdownHook(KafkaStreams streams, CountDownLatch latch) {
+    public static void addShutdownHook(KafkaStreams streams, CountDownLatch latch) {
         Runtime.getRuntime().addShutdownHook(new Thread("streams-shutdown-hook") {
             @Override
             public void run() {

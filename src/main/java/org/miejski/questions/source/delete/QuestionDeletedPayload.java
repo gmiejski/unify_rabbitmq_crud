@@ -6,12 +6,12 @@ public class QuestionDeletedPayload {
 
     private final int questionID;
     private final String content;
-    private final ZonedDateTime editedAt;
+    private final ZonedDateTime deletedAt;
 
-    public QuestionDeletedPayload(int questionID, String content, ZonedDateTime editedAt) {
+    public QuestionDeletedPayload(int questionID, String content, ZonedDateTime deletedAt) {
         this.questionID = questionID;
         this.content = content;
-        this.editedAt = editedAt;
+        this.deletedAt = deletedAt;
     }
 
     public int getQuestionID() {
@@ -22,7 +22,7 @@ public class QuestionDeletedPayload {
         return content;
     }
 
-    public ZonedDateTime getEditedAt() {
-        return editedAt;
+    public ZonedDateTime getDeletedAt() {
+        return deletedAt;
     }
 }

@@ -1,14 +1,15 @@
 package org.miejski.questions.source.delete;
 
 import org.miejski.exceptions.IdNotMatchingException;
+import org.miejski.questions.QuestionID;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.questions.state.QuestionStateChecker;
 
 public class SourceQuestionDeleted implements QuestionModifier {
 
-    private  String market;
-    private  SourceQuestionDeletedPayload payload;
+    private String market;
+    private SourceQuestionDeletedPayload payload;
 
     public SourceQuestionDeleted() {
     }
@@ -42,7 +43,6 @@ public class SourceQuestionDeleted implements QuestionModifier {
 
     @Override
     public String ID() {
-        return String.valueOf(payload.getQuestionID());
+        return QuestionID.from(market, payload.getQuestionID());
     }
-
 }

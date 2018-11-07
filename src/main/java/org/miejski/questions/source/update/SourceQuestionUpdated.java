@@ -1,7 +1,7 @@
 package org.miejski.questions.source.update;
 
-import org.miejski.Modifier;
 import org.miejski.exceptions.IdNotMatchingException;
+import org.miejski.questions.QuestionID;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.questions.state.QuestionStateChecker;
@@ -44,7 +44,6 @@ public class SourceQuestionUpdated implements QuestionModifier {
 
     @Override
     public String ID() {
-        return String.valueOf(payload.getQuestionID());
+        return QuestionID.from(market, payload.getQuestionID());
     }
-
 }

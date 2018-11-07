@@ -38,8 +38,8 @@ public class QuestionStateRunner {
         final KafkaStreams streams = new KafkaStreams(topology, props);
         final CountDownLatch latch = new CountDownLatch(1);
 
-        List<GeneratingBusProducer> producers = buildProducers(new RandomQuestionIDProvider(10000));
-        List<Future> allRunning = producers.stream().map(GeneratingBusProducer::start).collect(Collectors.toList());
+//        List<GeneratingBusProducer> producers = buildProducers(new RandomQuestionIDProvider(10000));
+//        List<Future> allRunning = producers.stream().map(GeneratingBusProducer::start).collect(Collectors.toList());
 
         printAllKeys(streams).start();
         addShutdownHook(streams, latch);
@@ -47,18 +47,18 @@ public class QuestionStateRunner {
         try {
             streams.start();
             latch.await();
-            producers.forEach(x -> x.stop());
-            allRunning.forEach(x -> {
-                try {
-                    x.get(5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (TimeoutException e) {
-                    e.printStackTrace();
-                }
-            });
+//            producers.forEach(x -> x.stop());
+//            allRunning.forEach(x -> {
+//                try {
+//                    x.get(5, TimeUnit.SECONDS);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                } catch (TimeoutException e) {
+//                    e.printStackTrace();
+//                }
+//            });
         } catch (Throwable e) {
             System.exit(1);
         }
@@ -95,7 +95,7 @@ public class QuestionStateRunner {
             System.out.println("Started - can read local state now.");
 
             while (true) {
-                ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore =
+                ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore = // TODO czemu Integer a nie String
                         streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
 
                 KeyValueIterator<Integer, QuestionState> range = keyValueStore.all();

@@ -1,4 +1,4 @@
-package org.miejski.questions.bu2kafka;
+package org.miejski.questions.bus2kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

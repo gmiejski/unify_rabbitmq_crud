@@ -3,6 +3,7 @@ package org.miejski.questions;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
@@ -12,10 +13,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.miejski.questions.bus2kafka.Bus2KafkaMappingTopology;
 import org.miejski.questions.events.QuestionCreated;
 import org.miejski.questions.events.QuestionDeleted;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.events.QuestionUpdated;
+import org.miejski.questions.source.create.SourceQuestionCreated;
+import org.miejski.questions.source.create.SourceQuestionCreatedPayload;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
@@ -44,7 +48,13 @@ public class QuestionsTest {
 
     @BeforeEach
     void setUp() {
-        Topology topology = new QuestionsStateTopology().buildTopology();
+
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+
+        Topology topology = new QuestionsStateTopology().buildTopology(streamsBuilder);
+        Topology topology2 = new Bus2KafkaMappingTopology().buildTopology(streamsBuilder);
+
+        System.out.println(topology2.describe());
 
         Properties props = new Properties();
         props.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getCanonicalName());
@@ -103,5 +113,17 @@ public class QuestionsTest {
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(updateContent, state.getContent());
         Assertions.assertTrue(state.isDeleted());
+    }
+
+    @Test
+    void sourceCreateTest() {
+        testDriver.pipeInput(createRecordFactory.create(Bus2KafkaMappingTopology.CREATE_TOPIC, null, new SourceQuestionCreated(market, new SourceQuestionCreatedPayload(questionID, content, ZonedDateTime.now()))));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(content, state.getContent());
+        Assertions.assertFalse(state.isDeleted());
     }
 }

@@ -1,4 +1,4 @@
-package org.miejski.questions.bu2kafka;
+package org.miejski.questions.bus2kafka;
 
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -7,6 +7,7 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.miejski.TopologyBuilder;
+import org.miejski.questions.QuestionID;
 import org.miejski.questions.QuestionsStateTopology;
 import org.miejski.questions.events.QuestionCreated;
 import org.miejski.questions.events.QuestionDeleted;
@@ -29,14 +30,8 @@ public class Bus2KafkaMappingTopology implements TopologyBuilder {
     public Topology buildTopology(StreamsBuilder streamsBuilder) {
 
         forwardToTopic(streamsBuilder, CREATE_TOPIC, QuestionsStateTopology.CREATE_TOPIC, sourceCreateMapper(), SourceQuestionCreated.class);
-        forwardToTopic(streamsBuilder, UPDATE_TOPIC, QuestionsStateTopology.UPDATE_TOPIC, questionModifier -> {
-            SourceQuestionUpdated source = (SourceQuestionUpdated) questionModifier;
-            return new QuestionUpdated(source.getMarket(), Integer.valueOf(source.ID()), source.getPayload().getContent(), source.getPayload().getEditedAt());
-        }, SourceQuestionUpdated.class);
-        forwardToTopic(streamsBuilder, DELETE_TOPIC, QuestionsStateTopology.DELETE_TOPIC, questionModifier -> {
-            SourceQuestionDeleted source = (SourceQuestionDeleted) questionModifier;
-            return new QuestionDeleted(source.getMarket(), Integer.valueOf(source.ID()), source.getPayload().getDeletedAt());
-        }, SourceQuestionDeleted.class);
+        forwardToTopic(streamsBuilder, UPDATE_TOPIC, QuestionsStateTopology.UPDATE_TOPIC, sourceUpdateMapper(), SourceQuestionUpdated.class);
+        forwardToTopic(streamsBuilder, DELETE_TOPIC, QuestionsStateTopology.DELETE_TOPIC, sourceDeleteMapper(), SourceQuestionDeleted.class);
 
         return streamsBuilder.build();
     }
@@ -44,7 +39,21 @@ public class Bus2KafkaMappingTopology implements TopologyBuilder {
     private Function<QuestionModifier, QuestionModifier> sourceCreateMapper() {
         return questionModifier -> {
             SourceQuestionCreated source = (SourceQuestionCreated) questionModifier;
-            return new QuestionCreated(source.getMarket(), Integer.valueOf(source.ID()), source.getPayload().getContent(), source.getPayload().getCreateDate());
+            return new QuestionCreated(source.getMarket(), QuestionID.from(source.ID()).getQuestionID(), source.getPayload().getContent(), source.getPayload().getCreateDate());
+        };
+    }
+
+    private Function<QuestionModifier, QuestionModifier> sourceUpdateMapper() {
+        return questionModifier -> {
+            SourceQuestionUpdated source = (SourceQuestionUpdated) questionModifier;
+            return new QuestionUpdated(source.getMarket(), QuestionID.from(source.ID()).getQuestionID(), source.getPayload().getContent(), source.getPayload().getEditedAt());
+        };
+    }
+
+    private Function<QuestionModifier, QuestionModifier> sourceDeleteMapper() {
+        return questionModifier -> {
+            SourceQuestionDeleted source = (SourceQuestionDeleted) questionModifier;
+            return new QuestionDeleted(source.getMarket(), QuestionID.from(source.ID()).getQuestionID(), source.getPayload().getDeletedAt());
         };
     }
 

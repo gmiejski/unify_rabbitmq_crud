@@ -14,10 +14,13 @@ topics_setup:
 	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic question_update_topic
 	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic question_delete_topic
 	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic question_state_topic --config cleanup.policy=compact
+	rabbitmqadmin declare queue name=SourceQuestionCreated durable=false
 
 down:
 	ps -ef | grep 'kafka' | grep -v grep | grep -v zookeeper |  awk '{print $$2}' | xargs  kill -9
 	ps -ef | grep 'zookeeper' | grep -v grep | awk '{print $$2}' | xargs  kill -9
+	rm -rf /tmp/zookeeper
+	rm -rf /tmp/kafka-*
 
 list_topics:
 	${KAFKA_PATH}/bin/kafka-topics.sh --list --zookeeper localhost:2181

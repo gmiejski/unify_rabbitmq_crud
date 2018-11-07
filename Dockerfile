@@ -11,5 +11,4 @@ RUN sed -i s/localhost:2181/zookeeper:2181/g /kafka/config/server.properties && 
 
 RUN ls /kafka/bin
 
-
-EXPOSE 2181 9092
+EXPOSE 2181

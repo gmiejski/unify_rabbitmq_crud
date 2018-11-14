@@ -46,8 +46,8 @@ public class QuestionsStateTopology implements TopologyBuilder {
         serializers.put(QuestionDeleted.class.getSimpleName(), QuestionDeleted.class);
 
         forwardToGenericTopic(streamsBuilder, CREATE_TOPIC, QuestionCreated.class);
-//        forwardToGenericTopic(streamsBuilder, UPDATE_TOPIC, QuestionUpdated.class);
-//        forwardToGenericTopic(streamsBuilder, DELETE_TOPIC, QuestionDeleted.class);
+        forwardToGenericTopic(streamsBuilder, UPDATE_TOPIC, QuestionUpdated.class);
+        forwardToGenericTopic(streamsBuilder, DELETE_TOPIC, QuestionDeleted.class);
 
         KStream<String, GenericField> allGenerics = streamsBuilder.stream(FINAL_TOPIC, Consumed.with(Serdes.String(), GenericFieldSerde.serde()));
 

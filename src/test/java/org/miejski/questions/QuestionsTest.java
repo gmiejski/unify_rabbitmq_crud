@@ -20,6 +20,10 @@ import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.events.QuestionUpdated;
 import org.miejski.questions.source.create.SourceQuestionCreated;
 import org.miejski.questions.source.create.SourceQuestionCreatedPayload;
+import org.miejski.questions.source.delete.SourceQuestionDeleted;
+import org.miejski.questions.source.delete.SourceQuestionDeletedPayload;
+import org.miejski.questions.source.update.SourceQuestionUpdated;
+import org.miejski.questions.source.update.SourceQuestionUpdatedPayload;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
@@ -125,5 +129,28 @@ public class QuestionsTest {
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(content, state.getContent());
         Assertions.assertFalse(state.isDeleted());
+    }
+
+    @Test
+    void sourceUpdateTest() {
+        testDriver.pipeInput(createRecordFactory.create(Bus2KafkaMappingTopology.UPDATE_TOPIC, null, new SourceQuestionUpdated(market, new SourceQuestionUpdatedPayload(questionID, content, ZonedDateTime.now()))));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(content, state.getContent());
+        Assertions.assertFalse(state.isDeleted());
+    }
+
+    @Test
+    void sourceDeleteTest() {
+        testDriver.pipeInput(createRecordFactory.create(Bus2KafkaMappingTopology.DELETE_TOPIC, null, new SourceQuestionDeleted(market, new SourceQuestionDeletedPayload(questionID, ZonedDateTime.now()))));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertTrue(state.isDeleted());
     }
 }

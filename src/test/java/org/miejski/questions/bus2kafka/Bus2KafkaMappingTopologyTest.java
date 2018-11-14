@@ -79,7 +79,7 @@ class Bus2KafkaMappingTopologyTest {
         });
 
         Assertions.assertNotNull(output.value());
-        Assertions.assertEquals(QuestionID.from(source.getMarket(), source.ID()), output.value().ID());
+        Assertions.assertEquals(source.ID(), output.value().ID());
         Assertions.assertEquals(source.getPayload().getContent(), output.value().getContent());
         Assertions.assertTrue(
                 source.getPayload().getCreateDate().isEqual(output.value().getCreateDate()));
@@ -101,7 +101,7 @@ class Bus2KafkaMappingTopologyTest {
         });
 
         Assertions.assertNotNull(output.value());
-        Assertions.assertEquals(QuestionID.from(source.getMarket(), source.ID()), output.value().ID());
+        Assertions.assertEquals(source.ID(), output.value().ID());
         Assertions.assertEquals(source.getPayload().getContent(), output.value().getContent());
         Assertions.assertTrue(
                 source.getPayload().getEditedAt().isEqual(output.value().getUpdateDate()));
@@ -110,7 +110,7 @@ class Bus2KafkaMappingTopologyTest {
 
     @Test
     void testDeleteQuestionEventsProcessed() {
-        SourceQuestionDeleted source = new SourceQuestionDeleted(market, new SourceQuestionDeletedPayload(questionID, content, ZonedDateTime.now()));
+        SourceQuestionDeleted source = new SourceQuestionDeleted(market, new SourceQuestionDeletedPayload(questionID, ZonedDateTime.now()));
         ConsumerRecord<byte[], byte[]> genericCreate = updatedRecordFactory.create(Bus2KafkaMappingTopology.DELETE_TOPIC, null, source);
 
         testDriver.pipeInput(genericCreate);
@@ -123,7 +123,7 @@ class Bus2KafkaMappingTopologyTest {
         });
 
         Assertions.assertNotNull(output.value());
-        Assertions.assertEquals(QuestionID.from(source.getMarket(), source.ID()), output.value().ID());
+        Assertions.assertEquals(source.ID(), output.value().ID());
         Assertions.assertTrue(
                 source.getPayload().getDeletedAt().isEqual(output.value().getDeleteDate()));
         Assertions.assertEquals(source.getMarket(), output.value().getMarket());

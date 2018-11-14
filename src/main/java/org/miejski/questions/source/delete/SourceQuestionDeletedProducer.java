@@ -1,6 +1,5 @@
 package org.miejski.questions.source.delete;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.miejski.questions.source.SourceEventProducer;
 
 import java.time.ZonedDateTime;
@@ -17,10 +16,7 @@ public class SourceQuestionDeletedProducer implements SourceEventProducer<Source
     }
 
     public SourceQuestionDeleted create() {
-        return new SourceQuestionDeleted(market, new SourceQuestionDeletedPayload(questionIDSupplier.get(), this.generateContent(), ZonedDateTime.now()));
+        return new SourceQuestionDeleted(market, new SourceQuestionDeletedPayload(questionIDSupplier.get(), ZonedDateTime.now()));
     }
 
-    private String generateContent() {
-        return RandomStringUtils.randomAscii(10);
-    }
 }

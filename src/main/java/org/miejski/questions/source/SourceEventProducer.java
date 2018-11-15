@@ -1,6 +1,8 @@
 package org.miejski.questions.source;
 
-public interface SourceEventProducer<T> {
+import java.util.List;
+import java.util.function.Function;
 
+public interface SourceEventProducer<T> {
     T create();
 }

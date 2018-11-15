@@ -66,6 +66,9 @@ public class RabbitMQJsonProducer implements Consumer<Object>, Closeable {
 
     public void setup() {
         try {
+            if (channel == null) {
+                throw new RuntimeException("channel not connected!!!");
+            }
             channel.queueDeclare(this.queueName, false, false, false, null);
         } catch (IOException e) {
             e.printStackTrace();

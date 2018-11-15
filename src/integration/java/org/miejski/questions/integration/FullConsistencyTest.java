@@ -12,6 +12,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.miejski.questions.JsonSerde;
 import org.miejski.questions.QuestionObjectMapper;
 import org.miejski.questions.QuestionStateRunner;
 import org.miejski.questions.QuestionsStateTopology;
@@ -24,6 +25,7 @@ import org.miejski.questions.source.RandomQuestionIDProvider;
 import org.miejski.questions.source.create.SourceQuestionCreateProducer;
 import org.miejski.questions.source.create.SourceQuestionCreated;
 import org.miejski.questions.source.delete.SourceQuestionDeleted;
+import org.miejski.questions.source.delete.SourceQuestionDeletedProducer;
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer;
 import org.miejski.questions.source.update.SourceQuestionUpdated;
 import org.miejski.questions.source.update.SourceQuestionUpdatedProducer;
@@ -47,7 +49,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -62,6 +63,7 @@ public class FullConsistencyTest {
     @BeforeEach
     void setUp() {
         latch = new CountDownLatch(1);
+        setupRabbitQueues();
     }
 
     @Test
@@ -70,18 +72,11 @@ public class FullConsistencyTest {
         maxQuestionID = 1000;
         int eventsPerTypeCount = 1000;
 
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
-        new QuestionsStateTopology().buildTopology(streamsBuilder);
-        new Bus2KafkaMappingTopology().buildTopology(streamsBuilder);
+        final KafkaStreams streams = prepareStream(latch);
 
-        Topology topology = streamsBuilder.build();
-        final KafkaStreams streams = new KafkaStreams(topology, getLocalProperties());
+        ProducersWithState fromFileProducers = rabbitMQProducersFromFile(maxQuestionID, eventsPerTypeCount);
 
-        QuestionStateRunner.addShutdownHook(streams, latch);
-        // TODO prepare queues
-
-        ProducersWithState producersWithState = producersAndFinalState(maxQuestionID, eventsPerTypeCount);
-        Future producerFinished = producersWithState.start();
+        Future producerFinished = fromFileProducers.start();
         producerFinished.get(10, TimeUnit.SECONDS);
 
         // when
@@ -93,26 +88,74 @@ public class FullConsistencyTest {
                 System.exit(1);
             }
         }).start();
+        waitForStreamsStart(streams);
 
+
+        // then
+        Assertions.assertTrue(eventually(Duration.ofMinutes(3), () -> assertStateMatches(fromFileProducers.getStates(), streams)));
+    }
+
+    private ProducersWithState rabbitMQProducersFromFile(int maxQuestionID, int eventsCount) {
+        RandomQuestionIDProvider idProvider = new RandomQuestionIDProvider(maxQuestionID);
+        MultiSourceEventProducer<SourceQuestionCreated> questionCreateProducer = new MultiSourceEventProducer<>(new SourceQuestionCreateProducer(market, idProvider));
+        MultiSourceEventProducer<SourceQuestionUpdated> questionUpdateProducer = new MultiSourceEventProducer<>(new SourceQuestionUpdatedProducer(market, idProvider));
+        MultiSourceEventProducer<SourceQuestionDeleted> questionDeleteProducer = new MultiSourceEventProducer<>(new SourceQuestionDeletedProducer(market, idProvider));
+
+        Map<String, List<? extends QuestionModifier>> objectsMap = new HashMap<>();
+        objectsMap.put("create", questionCreateProducer.create(eventsCount, SourceQuestionCreated::ID));
+        objectsMap.put("update", questionUpdateProducer.create(eventsCount));
+        objectsMap.put("delete", questionDeleteProducer.create(eventsCount));
+
+        JsonSerde jsonSerde = new JsonSerde();
+        jsonSerde.dumpAllEvents(objectsMap, false);
+
+        List<QuestionModifier> createEvents = jsonSerde.readEvents("create", SourceQuestionCreated.class);
+        List<QuestionModifier> updateEvents = jsonSerde.readEvents("update", SourceQuestionUpdated.class);
+        List<QuestionModifier> deleteEvents = jsonSerde.readEvents("delete", SourceQuestionDeleted.class);
+
+        Collections.shuffle(createEvents);
+        Collections.shuffle(updateEvents);
+        Collections.shuffle(deleteEvents);
+
+        List<BusProducer> busProducers = Arrays.asList(
+                generateRabbitMQProducer(createEvents, RabbitMQJsonProducer.QUESTION_CREATED_QUEUE),
+                generateRabbitMQProducer(updateEvents, RabbitMQJsonProducer.QUESTION_UPDATED_QUEUE),
+                generateRabbitMQProducer(deleteEvents, RabbitMQJsonProducer.QUESTION_DELETED_QUEUE)
+        );
+        return new ProducersWithState(busProducers, expectedState(Streams.concat(createEvents.stream(), updateEvents.stream(), deleteEvents.stream()).collect(toList())));
+    }
+
+    private ReadOnlyKeyValueStore<String, QuestionState> getStateStore(KafkaStreams streams) {
+        return streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+    }
+
+    private void waitForStreamsStart(KafkaStreams streams) {
         while (!streams.state().equals(KafkaStreams.State.RUNNING)) {
             System.out.println("waiting for streams to start");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                System.exit(1);
             }
         }
+    }
 
-        ReadOnlyKeyValueStore<String, QuestionState> questionsStore =
-                streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+    private KafkaStreams prepareStream(CountDownLatch latch) {
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+        new QuestionsStateTopology().buildTopology(streamsBuilder);
+        new Bus2KafkaMappingTopology().buildTopology(streamsBuilder);
 
-        // then
-        Assertions.assertTrue(eventually(Duration.ofMinutes(1), () ->assertStateMatches(producersWithState.getStates(), questionsStore)));
+        Topology topology = streamsBuilder.build();
+        final KafkaStreams streams = new KafkaStreams(topology, getLocalProperties());
+
+        QuestionStateRunner.addShutdownHook(streams, latch);
+        return streams;
     }
 
     private boolean eventually(Duration maxTime, Supplier<Boolean> s) {
         Duration totalTime = Duration.ZERO;
-        while(true) {
+        while (true) {
             try {
                 Thread.sleep(2000);
                 if (s.get()) {
@@ -129,61 +172,23 @@ public class FullConsistencyTest {
         return false;
     }
 
-    private ProducersWithState producersAndFinalState(int maxQuestionID, int eachEventTypeCount) {
-        RandomQuestionIDProvider idProvider = new RandomQuestionIDProvider(maxQuestionID);
-
-        MultiSourceEventProducer<SourceQuestionCreated> questionCreateProducer = new MultiSourceEventProducer<>(new SourceQuestionCreateProducer(market, idProvider));
-        MultiSourceEventProducer<SourceQuestionUpdated> questionUpdateProducer = new MultiSourceEventProducer<>(new SourceQuestionUpdatedProducer(market, idProvider));
-
-        List<SourceQuestionCreated> createEvents = questionCreateProducer.create(eachEventTypeCount);
-        List<SourceQuestionUpdated> updateEvents = questionUpdateProducer.create(eachEventTypeCount);
-
-        Map<String, List<KeyValue<String, SourceQuestionCreated>>> collect = createEvents.stream()
-                .map(x -> new KeyValue<>(x.ID(), x))
-                .collect(Collectors.groupingBy(x -> x.key));
-
-        createEvents = collect.entrySet().stream().map(x -> x.getValue().get(0).value).collect(Collectors.toList());
-
-        List<SourceQuestionCreated> finalCreateEvents = createEvents;
-        List<SourceQuestionCreated> replayedCreateEvents = IntStream.range(0, eachEventTypeCount).boxed()
-                .map(x -> finalCreateEvents.get(x % finalCreateEvents.size()))
-                .collect(Collectors.toList());
-
-        List<BusProducer> busProducers = generateProducers(replayedCreateEvents, Collections.emptyList()); // TODO change to proper list
-
-        return new ProducersWithState(busProducers, expectedState(replayedCreateEvents, Collections.emptyList())); // TODO change to proper list
-    }
-
-    private List<QuestionState> expectedState(List<SourceQuestionCreated> createEvents, List<SourceQuestionUpdated> updateEvents) {
-
-        Stream<Map.Entry<String, List<QuestionModifier>>> stream = Streams.concat(createEvents.stream(), updateEvents.stream())
-                .collect(groupingBy(x -> x.ID()))
+    private List<QuestionState> expectedState(List<QuestionModifier> modifiers) {
+        Stream<Map.Entry<String, List<QuestionModifier>>> stream = modifiers.stream()
+                .collect(groupingBy(QuestionModifier::ID))
                 .entrySet().stream();
-
-        List<QuestionState> collect = stream.map(x -> x.getValue().stream()
-                .reduce(new QuestionState(), (questionState, questionStateModifier) -> questionStateModifier.doSomething(questionState), (questionState, questionState2) -> questionState)
-        ).collect(Collectors.toList());
-
-        return collect;
+        return stream.map(this::toQuestionState).collect(toList());
     }
 
-    private List<BusProducer> generateProducers(List<SourceQuestionCreated> createEvents, List<SourceQuestionUpdated> updateEvents) {
+    private QuestionState toQuestionState(Map.Entry<String, List<QuestionModifier>> questionModifiers) {
+        return questionModifiers.getValue().stream()
+                .reduce(new QuestionState(), (questionState, questionStateModifier) -> questionStateModifier.doSomething(questionState), (questionState, questionState2) -> questionState);
+    }
 
-        EventStoreConsumer<SourceQuestionCreated> createdStore = new EventStoreConsumer<>();
-        EventStoreConsumer<SourceQuestionUpdated> updatedStore = new EventStoreConsumer<>();
-        EventStoreConsumer<SourceQuestionDeleted> deletedStore = new EventStoreConsumer<>();
-
-        RabbitMQJsonProducer createRabbitConsumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE);
-        createRabbitConsumer.connect();
-        createRabbitConsumer.setup();
-        RabbitMQJsonProducer updatedRabbitConsumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_UPDATED_QUEUE);
-        updatedRabbitConsumer.connect();
-        updatedRabbitConsumer.setup();
-
-        AllAtOnceBusProducer<SourceQuestionCreated> created = new AllAtOnceBusProducer<>(market, createEvents, new DuplicateConsumer<>(Arrays.asList(createRabbitConsumer, createdStore)));
-        AllAtOnceBusProducer<SourceQuestionUpdated> updated = new AllAtOnceBusProducer<>(market, updateEvents, new DuplicateConsumer<>(Arrays.asList(updatedRabbitConsumer, updatedStore)));
-
-        return Arrays.asList(created, updated);
+    private <T> BusProducer generateRabbitMQProducer(List<T> events, String rabbitmqQueueName) {
+        EventStoreConsumer<T> eventStore = new EventStoreConsumer<>();
+        RabbitMQJsonProducer rabitConsumer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), rabbitmqQueueName);
+        rabitConsumer.connect();
+        return new AllAtOnceBusProducer<>(market, events, new DuplicateConsumer<>(Arrays.asList(rabitConsumer, eventStore)));
     }
 
     private Properties getLocalProperties() {
@@ -193,13 +198,10 @@ public class FullConsistencyTest {
         return props;
     }
 
-
-    private boolean assertStateMatches(List<QuestionState> states, ReadOnlyKeyValueStore<String, QuestionState> store) {
-
+    private boolean assertStateMatches(List<QuestionState> states, KafkaStreams streams) {
         Map<String, QuestionState> expectedMap = states.stream().collect(Collectors.toMap(QuestionState::id, Function.identity()));
-
         try {
-            Thread.sleep(2000);
+            ReadOnlyKeyValueStore<String, QuestionState> store = getStateStore(streams);
             Map<String, QuestionState> storeQuestions = toMap(store.all());
             List<QuestionState> notMatchingQuestions = states.stream()
                     .filter(x -> !storeQuestions.containsKey(x.id()) || !storeQuestions.get(x.id()).equals(x))
@@ -207,7 +209,7 @@ public class FullConsistencyTest {
             if (!notMatchingQuestions.isEmpty()) {
                 return false;
             }
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return true;
@@ -221,6 +223,21 @@ public class FullConsistencyTest {
         }
         return result;
     }
+
+    private void setupRabbitQueues() {
+        RabbitMQJsonProducer createRabbitProducer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_CREATED_QUEUE);
+        createRabbitProducer.connect();
+        createRabbitProducer.setup();
+        createRabbitProducer.close();
+        RabbitMQJsonProducer updatedRabbitProducer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_UPDATED_QUEUE);
+        updatedRabbitProducer.connect();
+        updatedRabbitProducer.setup();
+        updatedRabbitProducer.close();
+        RabbitMQJsonProducer deleteRabbitProducer = RabbitMQJsonProducer.localRabbitMQProducer(QuestionObjectMapper.build(), RabbitMQJsonProducer.QUESTION_DELETED_QUEUE);
+        deleteRabbitProducer.connect();
+        deleteRabbitProducer.setup();
+        deleteRabbitProducer.close();
+    }
 }
 
 class ProducersWithState {
@@ -232,17 +249,12 @@ class ProducersWithState {
         this.states = states;
     }
 
-    public List<BusProducer> getProducers() {
-        return producers;
-    }
-
     public List<QuestionState> getStates() {
         return states;
     }
 
     public CompletableFuture start() {
-        List<CompletableFuture<Boolean>> collect = producers.stream().map(x -> x.start()).collect(toList());
-        return CompletableFuture.allOf(collect.toArray(new CompletableFuture[collect.size()]));
+        return CompletableFuture.allOf(producers.stream().map(BusProducer::start).toArray(CompletableFuture[]::new));
     }
 }
 
@@ -256,7 +268,7 @@ class DuplicateConsumer<T> implements Consumer<T> {
 
     @Override
     public void accept(T t) {
-        consumers.stream().forEach(consumer -> consumer.accept(t));
+        consumers.forEach(consumer -> consumer.accept(t));
     }
 }
 
@@ -269,8 +281,5 @@ class EventStoreConsumer<T> implements Consumer<T> {
         this.events.add(t);
     }
 
-    public List<T> getEvents() {
-        return events;
-    }
 }
 

@@ -1,11 +1,31 @@
-plugins {
-    id 'java'
+buildscript {
+    ext {
+        kotlinVersion = '1.3.10'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
+        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
+
+    }
 }
+
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
 
 group 'org.miejski'
 version '1.0-SNAPSHOT'
-
 sourceCompatibility = 1.8
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
 
 repositories {
     mavenCentral()
@@ -27,7 +47,7 @@ dependencies {
     compile group: 'org.apache.kafka', name: 'connect-transforms', version: '2.0.0'
     compile group: 'org.apache.kafka', name: 'connect-runtime', version: '2.0.0'
     compile group: 'org.apache.kafka', name: 'connect-json', version: '2.0.0'
-
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 
@@ -40,6 +60,8 @@ sourceSets {
         }
         resources.srcDir file('src/integration/resources')
     }
+    main.kotlin.srcDirs += 'src/main/myKotlin'
+    main.java.srcDirs += 'src/main/myJava'
 }
 
 configurations {
@@ -55,4 +77,3 @@ task integrationTest(type: Test) {
 
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
-

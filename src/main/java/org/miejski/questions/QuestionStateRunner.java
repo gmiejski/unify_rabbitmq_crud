@@ -41,7 +41,7 @@ public class QuestionStateRunner {
 //        List<GeneratingBusProducer> producers = buildProducers(new RandomQuestionIDProvider(10000));
 //        List<Future> allRunning = producers.stream().map(GeneratingBusProducer::start).collect(Collectors.toList());
 
-        printAllKeys(streams).start();
+//        printAllKeys(streams).start();
         addShutdownHook(streams, latch);
 
         try {
@@ -80,35 +80,35 @@ public class QuestionStateRunner {
         });
     }
 
-    private static Thread printAllKeys(KafkaStreams streams) {
-        return new Thread(() -> {
-
-            while (!streams.state().equals(KafkaStreams.State.RUNNING)) {
-                System.out.println("waiting for streams to start");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            System.out.println("Started - can read local state now.");
-
-            while (true) {
-                ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore = // TODO czemu Integer a nie String
-                        streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
-
-                KeyValueIterator<Integer, QuestionState> range = keyValueStore.all();
-                while (range.hasNext()) {
-                    KeyValue<Integer, QuestionState> next = range.next();
-                    System.out.println(next.value.toString());
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+//    private static Thread printAllKeys(KafkaStreams streams) {
+//        return new Thread(() -> {
+//
+//            while (!streams.state().equals(KafkaStreams.State.RUNNING)) {
+//                System.out.println("waiting for streams to start");
+//                try {
+//                    Thread.sleep(1000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//            System.out.println("Started - can read local state now.");
+//
+//            while (true) {
+//                ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore = // TODO czemu Integer a nie String
+//                        streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+//
+//                KeyValueIterator<Integer, QuestionState> range = keyValueStore.all();
+//                while (range.hasNext()) {
+//                    KeyValue<Integer, QuestionState> next = range.next();
+//                    System.out.println(next.value.toString());
+//                }
+//                try {
+//                    Thread.sleep(1000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//    }
 }

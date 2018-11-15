@@ -32,4 +32,4 @@ start_rabbit:
 	rabbitmq-server &
 
 kill_rabbit:
-	ps -ef | grep 'rabbitmq' | grep -v grep | awk '{print $$2}' | xargs  kill -9
+	rabbitmqctl stop

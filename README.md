@@ -12,21 +12,34 @@
     * `KAFKA_PATH=${your_main_kafka_path} make setup-clusters`
         * sometimes something goes wrong - just run this command second time, and you should see all connections successful
     * `KAFKA_PATH=${your_main_kafka_path} make topics_setup`
-    * verify everything works correctly: `KAFKA_PATH=${your_main_kafka_path} make list_topics` 
+    * verify everything works correctly: `KAFKA_PATH=${your_main_kafka_path} make list_topics` - shoule list 4 topics
 * start rabbitMQ:  
     * install `brew update` && `brew install rabbitmq`
     * in case of linking errors: 
         * `sudo mkdir /usr/local/sbin`
         * `sudo chown -R $(whoami) $(brew --prefix)/*`
         * `brew link rabbitmq`
-    * `rabbitmq-server` and `http://localhost:15672/#/exchanges`
+    * `rabbitmq-server` and go to `http://localhost:15672/#/exchanges`
+* install kafka-connect:
+    * Download confluent platform `https://www.confluent.io/download/`
+    * `.../confluent-5.0.0/bin/connect-standalone connectors/worker-working.properties connectors/create-questions.properties connectors/update-questions.properties connectors/delete-questions.properties`
 
 
 ## kill everything
 
 * `make down`
+* `make kill_rabbit`
 
-### kafka streams docs
+## Run integration-consistenty test
+
+[Docs](src/integration/README.md)
+
+
+
+
+
+
+## Other sources - kafka streams docs
 
 * https://kafka.apache.org/20/documentation/streams/quickstart
 * https://kafka.apache.org/20/documentation/streams/tutorial
@@ -59,7 +72,6 @@
 ### might be usefull
 * https://www.programcreek.com/java-api-examples/?code=jcustenborder/kafka-connect-rabbitmq/kafka-connect-rabbitmq-master/src/main/java/com/github/jcustenborder/kafka/connect/rabbitmq/MessageConverter.java#
 
-
 ## TODOs for MVP
 
 * Objects playground
@@ -70,13 +82,13 @@
     * [x] Implement single channel aggregation with test
     * [x] Make sure data is consistent
     * [x] Join 3 CRUD topics
-    * [ ] Connect RabbitMQ to kafka - https://docs.confluent.io/current/connect/kafka-connect-rabbitmq/rabbit_m_q_source_connector_config.html
+    * [x] Connect RabbitMQ to kafka - https://docs.confluent.io/current/connect/kafka-connect-rabbitmq/rabbit_m_q_source_connector_config.html
         * [x] <s>run rabbitMQ on docker</s> | run rabbitmq locally
-        * [ ] create producer to rabbitMQ
-        * [ ] use kafka-connect to create topic in kafka with events
-        * [ ] make CRUD topics operate on original question events (those coming from legacy systems)
-        * [ ] update map operations, to change original, to GenericField events
-        * [ ] write integration test
+        * [x] create producer to rabbitMQ
+        * [x] use kafka-connect to create topic in kafka with events
+        * [x] make CRUD topics operate on original question events (those coming from legacy systems)
+        * [x] update map operations, to change original, to GenericField events
+        * [x] write integration test
  
 * Prod consistency test:
     * [ ] prepare rabbitMQ to be run via docker
@@ -84,6 +96,8 @@
     * [ ] prepare data in RabbitMQ, persist expected state
     * [ ] start kafka connectors and kafka stream
     * [ ] Verify results
+
+* Setup local stores with REST API
 
 * verify solution
     * [ ] https://stackoverflow.com/users/7897191/michal-borowiecki

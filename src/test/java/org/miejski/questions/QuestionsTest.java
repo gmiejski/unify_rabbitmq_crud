@@ -3,6 +3,7 @@ package org.miejski.questions;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
@@ -12,10 +13,17 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.miejski.questions.bus2kafka.Bus2KafkaMappingTopology;
 import org.miejski.questions.events.QuestionCreated;
 import org.miejski.questions.events.QuestionDeleted;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.questions.events.QuestionUpdated;
+import org.miejski.questions.source.create.SourceQuestionCreated;
+import org.miejski.questions.source.create.SourceQuestionCreatedPayload;
+import org.miejski.questions.source.delete.SourceQuestionDeleted;
+import org.miejski.questions.source.delete.SourceQuestionDeletedPayload;
+import org.miejski.questions.source.update.SourceQuestionUpdated;
+import org.miejski.questions.source.update.SourceQuestionUpdatedPayload;
 import org.miejski.questions.state.QuestionState;
 import org.miejski.simple.objects.serdes.GenericField;
 import org.miejski.simple.objects.serdes.GenericFieldSerde;
@@ -44,7 +52,13 @@ public class QuestionsTest {
 
     @BeforeEach
     void setUp() {
-        Topology topology = new QuestionsTopology().buildTopology();
+
+        StreamsBuilder streamsBuilder = new StreamsBuilder();
+
+        Topology topology = new QuestionsStateTopology().buildTopology(streamsBuilder);
+        Topology topology2 = new Bus2KafkaMappingTopology().buildTopology(streamsBuilder);
+
+        System.out.println(topology2.describe());
 
         Properties props = new Properties();
         props.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getCanonicalName());
@@ -53,7 +67,7 @@ public class QuestionsTest {
         props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName());
 
         testDriver = new TopologyTestDriver(topology, props);
-        store = testDriver.getKeyValueStore(QuestionsTopology.QUESTIONS_STORE_NAME);
+        store = testDriver.getKeyValueStore(QuestionsStateTopology.QUESTIONS_STORE_NAME);
     }
 
     @AfterEach
@@ -63,7 +77,8 @@ public class QuestionsTest {
 
     @Test
     void shouldProperlyUseGenericQuestionEventsInOneTopic() {
-        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        QuestionCreated objectModifier = new QuestionCreated(market, questionID, content, ZonedDateTime.now());
+        ConsumerRecord<byte[], byte[]> genericCreate = genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(objectModifier));
 
         testDriver.pipeInput(genericCreate);
 
@@ -72,7 +87,7 @@ public class QuestionsTest {
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(content, state.getContent());
 
-        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericUpdate = genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
         testDriver.pipeInput(genericUpdate);
 
         state = store.get(QuestionID.from(market, questionID));
@@ -80,7 +95,7 @@ public class QuestionsTest {
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(updateContent, state.getContent());
 
-        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionDeleted(market, questionID, ZonedDateTime.now())));
+        ConsumerRecord<byte[], byte[]> genericDelete = genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, questionRef, genericFieldSerde.toGenericField(new QuestionDeleted(market, questionID, ZonedDateTime.now())));
         testDriver.pipeInput(genericDelete);
 
         state = store.get(QuestionID.from(market, questionID));
@@ -92,15 +107,50 @@ public class QuestionsTest {
 
     @Test
     void shouldReadEachEventSeparately() {
-        testDriver.pipeInput(createRecordFactory.create(QuestionsTopology.CREATE_TOPIC, questionRef, new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
-        testDriver.pipeInput(updateRecordFactory.create(QuestionsTopology.UPDATE_TOPIC, questionRef, new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
-        testDriver.pipeInput(deleteRecordFactory.create(QuestionsTopology.DELETE_TOPIC, questionRef, new QuestionDeleted(market, questionID, ZonedDateTime.now())));
+        testDriver.pipeInput(createRecordFactory.create(QuestionsStateTopology.CREATE_TOPIC, questionRef, new QuestionCreated(market, questionID, content, ZonedDateTime.now())));
+        testDriver.pipeInput(updateRecordFactory.create(QuestionsStateTopology.UPDATE_TOPIC, questionRef, new QuestionUpdated(market, questionID, updateContent, ZonedDateTime.now())));
+        testDriver.pipeInput(deleteRecordFactory.create(QuestionsStateTopology.DELETE_TOPIC, questionRef, new QuestionDeleted(market, questionID, ZonedDateTime.now())));
 
         QuestionState state = store.get(QuestionID.from(market, questionID));
 
         Assertions.assertEquals(market, state.getMarket());
         Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertEquals(updateContent, state.getContent());
+        Assertions.assertTrue(state.isDeleted());
+    }
+
+    @Test
+    void sourceCreateTest() {
+        testDriver.pipeInput(createRecordFactory.create(Bus2KafkaMappingTopology.CREATE_TOPIC, null, new SourceQuestionCreated(market, new SourceQuestionCreatedPayload(questionID, content, ZonedDateTime.now()))));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(content, state.getContent());
+        Assertions.assertFalse(state.isDeleted());
+    }
+
+    @Test
+    void sourceUpdateTest() {
+        testDriver.pipeInput(createRecordFactory.create(Bus2KafkaMappingTopology.UPDATE_TOPIC, null, new SourceQuestionUpdated(market, new SourceQuestionUpdatedPayload(questionID, content, ZonedDateTime.now()))));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
+        Assertions.assertEquals(content, state.getContent());
+        Assertions.assertFalse(state.isDeleted());
+    }
+
+    @Test
+    void sourceDeleteTest() {
+        testDriver.pipeInput(createRecordFactory.create(Bus2KafkaMappingTopology.DELETE_TOPIC, null, new SourceQuestionDeleted(market, new SourceQuestionDeletedPayload(questionID, ZonedDateTime.now()))));
+
+        QuestionState state = store.get(QuestionID.from(market, questionID));
+
+        Assertions.assertEquals(market, state.getMarket());
+        Assertions.assertEquals(questionID, state.getQuestionID());
         Assertions.assertTrue(state.isDeleted());
     }
 }

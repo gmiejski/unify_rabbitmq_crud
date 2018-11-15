@@ -1,0 +1,9 @@
+{
+  "market": "some",
+  "payload": {
+    "taskId": 0,
+    "responseId": 0,
+    "subjectId": 0
+  },
+  "name": "eventName"
+}

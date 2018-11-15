@@ -30,11 +30,8 @@ public class ObjectsTopology implements TopologyBuilder {
     public static final String OBJECTS_STORE_NAME = "objectsFinal";
     private final GenericFieldSerde genericFieldSerde = new GenericFieldSerde(QuestionObjectMapper.build());
 
-
     @Override
-    public Topology buildTopology() {
-        StreamsBuilder streamsBuilder = new StreamsBuilder();
-
+    public Topology buildTopology(StreamsBuilder streamsBuilder) {
         HashMap<String, Class> serializers = new HashMap<>();
         serializers.put(ObjectCreation.class.getSimpleName(), ObjectCreation.class);
         serializers.put(ObjectUpdate.class.getSimpleName(), ObjectUpdate.class);

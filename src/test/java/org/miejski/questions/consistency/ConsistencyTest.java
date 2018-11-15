@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.miejski.questions.QuestionObjectMapper;
 import org.miejski.questions.state.QuestionState;
-import org.miejski.questions.QuestionsTopology;
+import org.miejski.questions.QuestionsStateTopology;
 import org.miejski.questions.events.QuestionModifier;
 import org.miejski.simple.objects.consistecy.EventsPercentages;
 import org.miejski.simple.objects.serdes.GenericField;
@@ -39,7 +39,7 @@ public class ConsistencyTest {
 
     @BeforeEach
     void setUp() {
-        Topology topology = new QuestionsTopology().buildTopology();
+        Topology topology = new QuestionsStateTopology().buildTopology();
 
         Properties props = new Properties();
         props.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getCanonicalName());
@@ -48,7 +48,7 @@ public class ConsistencyTest {
         props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName());
 
         testDriver = new TopologyTestDriver(topology, props);
-        store = testDriver.getKeyValueStore(QuestionsTopology.QUESTIONS_STORE_NAME);
+        store = testDriver.getKeyValueStore(QuestionsStateTopology.QUESTIONS_STORE_NAME);
 
 
     }
@@ -67,7 +67,7 @@ public class ConsistencyTest {
         Map<String, QuestionState> expectedStates = generatedData.finalState();
         Collections.shuffle(events);
         events.stream()
-                .map(e -> genericObjectFactory.create(QuestionsTopology.FINAL_TOPIC, e.ID(), genericFieldSerde.toGenericField(e)))
+                .map(e -> genericObjectFactory.create(QuestionsStateTopology.FINAL_TOPIC, e.ID(), genericFieldSerde.toGenericField(e)))
                 .forEach(e -> testDriver.pipeInput(e));
 
         // when

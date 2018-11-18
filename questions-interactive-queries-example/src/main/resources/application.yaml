@@ -1,0 +1,6 @@
+questions.kafka:
+  bootstrap-servers: "localhost:9092,localhost:9093,localhost:9094"
+  application-id: "questions-interactive-queries-1"
+
+server:
+  port: 8081

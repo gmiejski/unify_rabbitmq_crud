@@ -7,7 +7,7 @@ import org.miejski.questions.QuestionID
 import org.miejski.questions.QuestionsStateTopology
 import org.miejski.questions.state.QuestionState
 
-class QuestionsService(val streams: KafkaStreams) {
+open class QuestionsService(val streams: KafkaStreams) {
     fun get(market: String, id: Int): QuestionState {
         val store = getStore()
         return store.get(QuestionID.from(market, id)) ?: throw QuestionNotFound(market, id)

@@ -1,7 +1,9 @@
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    compile project(":questions-streams")
 
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.1.0.RELEASE'
+
+    compile project(":questions-streams")
 }
 
 compileKotlin {
@@ -9,4 +11,20 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+apply plugin: 'application'
+apply plugin: 'kotlin-spring'
+apply plugin: 'org.springframework.boot'
+
+mainClassName = 'org.miejski.questions.RestQuestionStateKt'
+
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'org.miejski.questions.RestQuestionStateKt'
+        )
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }

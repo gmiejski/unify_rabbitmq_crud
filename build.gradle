@@ -14,12 +14,10 @@ buildscript {
     }
 }
 
-
-allprojects {
+subprojects {
 
     apply plugin: 'java'
     apply plugin: 'kotlin'
-    apply plugin: 'org.springframework.boot'
     apply plugin: 'kotlin-spring'
     apply plugin: 'io.spring.dependency-management'
 
@@ -41,8 +39,10 @@ allprojects {
 
     dependencies {
 
-        compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.1.0.RELEASE'
-        compile('com.fasterxml.jackson.module:jackson-module-kotlin')
+//        compile('com.fasterxml.jackson.module:jackson-module-kotlin')
+        compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.7'
+
+
         compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
         compile("org.jetbrains.kotlin:kotlin-reflect")
         compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.9.7'
@@ -50,47 +50,29 @@ allprojects {
         compile group: 'com.google.guava', name: 'guava', version: '23.0'
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
 
-        testCompile('org.springframework.boot:spring-boot-starter-test')
+        compile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.0.RELEASE'
+
         testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.3.1'
         testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.3.1'
 
         compile group: 'org.apache.kafka', name: 'kafka-streams', version: '2.0.0'
         compile group: 'org.apache.kafka', name: 'kafka-streams-test-utils', version: '2.0.0'
         compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
     }
 
-//    sourceSets {
-//        integration {
-//            java {
-//                compileClasspath += main.output + test.output
-//                runtimeClasspath += main.output + test.output
-//                srcDir file('src/integration/java')
-//            }
-//            resources.srcDir file('src/integration/resources')
-//        }
-//        main.kotlin.srcDirs += 'src/main/kotlin'
-//        main.java.srcDirs += 'src/main/java'
-//    }
-
-//    configurations {
-//        integrationTestCompile.extendsFrom testCompile
-//        integrationTestRuntime.extendsFrom testRuntime
-//    }
-
-
-}
-
-
-// https://spring.io/guides/tutorials/spring-boot-kotlin/
-compileKotlin {
-    kotlinOptions {
-        freeCompilerArgs = ["-Xjsr305=strict"]
-        jvmTarget = "1.8"
+    // https://spring.io/guides/tutorials/spring-boot-kotlin/
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
+        }
+    }
+    compileTestKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
+        }
     }
 }
-compileTestKotlin {
-    kotlinOptions {
-        freeCompilerArgs = ["-Xjsr305=strict"]
-        jvmTarget = "1.8"
-    }
-}
+

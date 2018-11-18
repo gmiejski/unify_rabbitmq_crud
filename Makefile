@@ -37,3 +37,6 @@ kill_rabbit:
 
 connector_start:
 	connect-standalone connectors/worker-working.properties connectors/create-questions.properties connectors/update-questions.properties connectors/delete-questions.properties
+
+run_interactive_queries_rest:
+	java -jar -Dserver.port=$(server.port) questions-interactive-queries-example/build/libs/questions-interactive-queries-example-1.0-SNAPSHOT.jar

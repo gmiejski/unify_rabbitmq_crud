@@ -14,6 +14,7 @@ topics_setup:
 	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic question_update_topic
 	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic question_delete_topic
 	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic question_state_topic --config cleanup.policy=compact
+	${KAFKA_PATH}/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic ro_question_state_topic --config cleanup.policy=compact
 	rabbitmqadmin declare queue name=SourceQuestionCreated durable=false
 
 down:

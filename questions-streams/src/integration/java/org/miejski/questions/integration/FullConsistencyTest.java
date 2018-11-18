@@ -126,7 +126,7 @@ public class FullConsistencyTest {
     }
 
     private ReadOnlyKeyValueStore<String, QuestionState> getStateStore(KafkaStreams streams) {
-        return streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+        return streams.store(QuestionsStateTopology.QUESTIONS_AGGREGATION_STORE_NAME, QueryableStoreTypes.keyValueStore());
     }
 
     private void waitForStreamsStart(KafkaStreams streams) {
@@ -193,7 +193,7 @@ public class FullConsistencyTest {
 
     private Properties getLocalProperties() {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "question-states");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "question-states-streams");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092,localhost:9093,localhost:9094");
         return props;
     }

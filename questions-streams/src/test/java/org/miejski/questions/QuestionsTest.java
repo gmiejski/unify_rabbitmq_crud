@@ -67,7 +67,7 @@ public class QuestionsTest {
         props.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.Integer().getClass().getName());
 
         testDriver = new TopologyTestDriver(topology, props);
-        store = testDriver.getKeyValueStore(QuestionsStateTopology.QUESTIONS_STORE_NAME);
+        store = testDriver.getKeyValueStore(QuestionsStateTopology.QUESTIONS_AGGREGATION_STORE_NAME);
     }
 
     @AfterEach

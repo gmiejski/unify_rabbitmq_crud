@@ -77,7 +77,7 @@ public class QuestionStateRunner {
 
             while (true) {
                 ReadOnlyKeyValueStore<Integer, QuestionState> keyValueStore = // TODO czemu Integer a nie String
-                        streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore());
+                        streams.store(QuestionsStateTopology.QUESTIONS_AGGREGATION_STORE_NAME, QueryableStoreTypes.keyValueStore());
 
                 KeyValueIterator<Integer, QuestionState> range = keyValueStore.all();
                 while (range.hasNext()) {

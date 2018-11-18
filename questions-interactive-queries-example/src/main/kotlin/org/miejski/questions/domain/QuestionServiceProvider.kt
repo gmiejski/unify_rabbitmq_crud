@@ -4,6 +4,7 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.StreamsConfig
 import org.miejski.questions.QuestionStateRunner
+import org.miejski.questions.QuestionsStateReaderTopology
 import org.miejski.questions.QuestionsStateTopology
 import org.miejski.questions.bus2kafka.Bus2KafkaMappingTopology
 import org.springframework.beans.factory.FactoryBean
@@ -21,7 +22,7 @@ class QuestionServiceProvider constructor(val settings: QuestionServiceSettings)
         props[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = settings.bootstrapServers
 
         val streamsBuilder = StreamsBuilder()
-        QuestionsStateTopology().buildTopology(streamsBuilder)
+        QuestionsStateReaderTopology().buildTopology(streamsBuilder)
 
         val streams = KafkaStreams(streamsBuilder.build(), props)
         this.start(streams)

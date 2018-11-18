@@ -30,6 +30,6 @@ class QuestionsService(val streams: KafkaStreams) {
     }
 
     private fun getStore(): ReadOnlyKeyValueStore<String, QuestionState> {
-        return streams.store(QuestionsStateTopology.QUESTIONS_STORE_NAME, QueryableStoreTypes.keyValueStore())
+        return streams.store(QuestionsStateTopology.QUESTIONS_RO_STORE_NAME, QueryableStoreTypes.keyValueStore())
     }
 }

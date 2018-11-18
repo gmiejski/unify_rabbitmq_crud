@@ -6,10 +6,8 @@ import org.miejski.questions.source.create.SourceQuestionCreateProducer
 import org.miejski.questions.source.delete.SourceQuestionDeletedProducer
 import org.miejski.questions.source.rabbitmq.RabbitMQJsonProducer
 import org.miejski.questions.source.update.SourceQuestionUpdatedProducer
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
-class RunRabbitFixedProducer {
+class RunRabbitFixedCountProducer {
 
     private var objectMapper: ObjectMapper = QuestionObjectMapper.build()
 
@@ -44,7 +42,7 @@ class RunRabbitFixedProducer {
 
 fun main(args: Array<String>) {
 
-    val runner = RunRabbitFixedProducer()
+    val runner = RunRabbitFixedCountProducer()
     runner.setup("us", 10000)
     runner.startAll(10000)
     runner.stopAll()

@@ -1,6 +1,4 @@
-spring.datasource.url: jdbc:postgresql://localhost:5432/restCrudExample
-spring.datasource.username: dbuser
-spring.datasource.password: dbpass
-spring.jpa.hibernate.ddl-auto: create-drop
-
-kafka.bootstrap: localhost:9092,localhost:9093,localhost:9094
+questions.kafka.bootstrap: localhost:9092,localhost:9093,localhost:9094
+questions.kafka.applicationID : something2
+server:
+  port: 8080

@@ -25,4 +25,4 @@ class RestController @Autowired constructor(val questionsService: QuestionsServi
     }
 }
 
-data class QuestionsInfoDTO(val count: Int)
+data class QuestionsInfoDTO(val count: Long)

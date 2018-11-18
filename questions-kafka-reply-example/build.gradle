@@ -6,10 +6,15 @@ dependencies {
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.1.0.RELEASE'
 // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-jdbc
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-jdbc', version: '2.1.0.RELEASE'
+    compile group: 'org.springframework.data', name: 'spring-data-jpa', version: '2.1.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.1.0.RELEASE'
 
     compile group: 'postgresql', name: 'postgresql', version: '9.1-901-1.jdbc4'
     compile project(":questions-streams")
 
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("com.h2database:h2")    
+    
 }
 
 apply plugin: 'application'

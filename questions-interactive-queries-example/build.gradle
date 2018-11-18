@@ -1,5 +1,4 @@
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.1.0.RELEASE'
 

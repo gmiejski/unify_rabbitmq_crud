@@ -40,3 +40,6 @@ connector_start:
 
 run_interactive_queries_rest:
 	java -jar -Dserver.port=$(server.port) questions-interactive-queries-example/build/libs/questions-interactive-queries-example-1.0-SNAPSHOT.jar
+
+run_crud_rest:
+	java -jar -Dserver.port=$(server.port) -Dquestions.kafka.applicationID=${applicationID} questions-kafka-reply-example/build/libs/questions-kafka-reply-example-1.0-SNAPSHOT.jar

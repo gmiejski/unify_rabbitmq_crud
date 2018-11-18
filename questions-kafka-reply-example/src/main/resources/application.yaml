@@ -1,0 +1,4 @@
+questions.kafka.bootstrap: localhost:9092,localhost:9093,localhost:9094
+questions.kafka.applicationID : something2
+server:
+  port: 8080

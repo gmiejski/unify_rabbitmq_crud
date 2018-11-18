@@ -12,7 +12,7 @@ import static java.util.stream.Collectors.toList;
 
 public class MultiSourceEventProducer<T> implements SourceEventProducer<T> {
 
-    private SourceEventProducer<T> proxy;
+    SourceEventProducer<T> proxy;
 
     public MultiSourceEventProducer(SourceEventProducer<T> proxy) {
         this.proxy = proxy;

@@ -40,7 +40,7 @@ class GeneratingBusProducerTest {
     void eventsAreProduced() throws InterruptedException, ExecutionException, TimeoutException {
         LastSeenCache consumer = new LastSeenCache();
         SourceEventProducer<SourceQuestionCreated> questionCreatedProducer = () -> us;
-        GeneratingBusProducer<SourceQuestionCreated> producer = new GeneratingBusProducer<>(consumer);
+        GeneratingBusProducer<SourceQuestionCreated> producer = new GeneratingBusProducer<>(questionCreatedProducer, consumer);
         Future<Boolean> finished = producer.start();
 
         assertTimeout(Duration.ofSeconds(1), () -> {

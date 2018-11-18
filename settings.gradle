@@ -1,4 +1,4 @@
 rootProject.name = 'question-state-kafka-streams'
 
-include 'questions-kafka-reply-example', 'questions-interactive-queries-example', 'questions-streams'
+include 'questions-streams', 'questions-kafka-reply-example', 'questions-interactive-queries-example', 'questions-bus-mapper'
 

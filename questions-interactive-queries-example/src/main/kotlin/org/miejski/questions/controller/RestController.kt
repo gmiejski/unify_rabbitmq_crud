@@ -18,4 +18,11 @@ class RestController @Autowired constructor(val questionsService: QuestionsServi
     fun allQuestions(@PathVariable market: String): List<QuestionStateDTO> { // TODO move to object
         return questionsService.getAll(market).map { it.toDto() }
     }
+
+    @GetMapping("/{market}/questions/action/count")
+    fun count(@PathVariable market: String): QuestionsInfoDTO {
+        return QuestionsInfoDTO(questionsService.count())
+    }
 }
+
+data class QuestionsInfoDTO(val count: Int)

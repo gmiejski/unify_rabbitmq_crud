@@ -22,7 +22,6 @@ class QuestionServiceProvider constructor(val settings: QuestionServiceSettings)
 
         val streamsBuilder = StreamsBuilder()
         QuestionsStateTopology().buildTopology(streamsBuilder)
-        Bus2KafkaMappingTopology().buildTopology(streamsBuilder)
 
         val streams = KafkaStreams(streamsBuilder.build(), props)
         this.start(streams)

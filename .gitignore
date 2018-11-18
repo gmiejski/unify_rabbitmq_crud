@@ -95,3 +95,5 @@ fabric.properties
 .idea
 kafka_*
 src/integration/events
+**/*.iml
+worker.offsets

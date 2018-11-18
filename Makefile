@@ -33,3 +33,6 @@ start_rabbit:
 
 kill_rabbit:
 	rabbitmqctl stop
+
+connector_start:
+	connect-standalone connectors/worker-working.properties connectors/create-questions.properties connectors/update-questions.properties connectors/delete-questions.properties
